@@ -16,6 +16,11 @@ class UrlShortenController {
 
     @PostMapping("/shorten-url/create")
     fun shortenUrlCreate(@RequestBody originUrl: String): String {
+        shortenUrls.forEach { (key, value) ->
+            if (value == originUrl) {
+                return key
+            }
+        }
         return Random.nextInt(10000).toString().run {
             shortenUrls[this] = originUrl
             this

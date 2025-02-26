@@ -1,34 +1,36 @@
 package community.whatever.onembackendjava;
 
-import community.whatever.onembackendjava.dto.CreateShortenUrlRequest;
-import community.whatever.onembackendjava.dto.CreateShortenUrlResponse;
-import community.whatever.onembackendjava.dto.SearchShortenUrlRequest;
-import community.whatever.onembackendjava.dto.SearchShortenUrlResponse;
+import community.whatever.onembackendjava.dto.*;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-
 @RestController
+@RequiredArgsConstructor
 public class UrlShortenController {
 
-    private final Map<String, String> shortenUrls = new HashMap<>();
+    private final UrlShortenService urlShortenService;
 
     @PostMapping("/shorten-url/search")
-    public SearchShortenUrlResponse shortenUrlSearch(@RequestBody SearchShortenUrlRequest searchShortenUrlRequest) {
-        if (!shortenUrls.containsKey(searchShortenUrlRequest.key())) {
-            throw new IllegalArgumentException("Invalid key");
-        }
-        return new SearchShortenUrlResponse(shortenUrls.get(searchShortenUrlRequest.key()));
+    public SearchShortenUrlResponse shortenUrlSearch(@RequestBody SearchShortenUrlRequest request) {
+        return urlShortenService.searchShortenUrl(request);
     }
 
     @PostMapping("/shorten-url/create")
-    public CreateShortenUrlResponse shortenUrlCreate(@RequestBody CreateShortenUrlRequest createShortenUrlRequest) {
-        String randomKey = String.valueOf(new Random().nextInt(10000));
-        shortenUrls.put(randomKey, createShortenUrlRequest.originUrl());
-        return new CreateShortenUrlResponse(randomKey);
+    public CreateShortenUrlResponse shortenUrlCreate(@Valid @RequestBody CreateShortenUrlRequest request) {
+        return urlShortenService.createShortenUrl(request);
+    }
+
+    @GetMapping("/shorten--urls")
+    public HashMapResponse getAllShortenUrls() {
+        return urlShortenService.getAllShortenUrls();
+    }
+
+    @PostMapping("/shorten--urls")
+    public String postShortenUrls(@RequestBody PostShortenUrlsRequest request) {
+        return urlShortenService.addToShortenUrls(request);
     }
 }

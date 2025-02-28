@@ -28,9 +28,13 @@ public class UrlShortenService {
     }
 
     public CreateShortenUrlResponse createShortenUrl(CreateShortenUrlRequest request) {
-        String randomKey;
         String originUrl = request.originUrl();
-
+        
+        if (urlMappingManager.isUrlBlocked(originUrl)) {
+            throw new IllegalArgumentException("이 url은 차단되었습니다.");
+        }
+        
+        String randomKey;
         do {
             randomKey = generateRandomKey();
         } while (!urlMappingManager.putIfAbsent(randomKey, originUrl));

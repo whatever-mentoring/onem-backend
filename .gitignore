@@ -143,3 +143,7 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,gradle
+
+# 도커 부하테스트 관련
+docker_test/grafana/data/
+docker_test/grafana/plugins

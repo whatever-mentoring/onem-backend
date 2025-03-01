@@ -12,7 +12,7 @@ class UrlShortenController {
 
     @PostMapping("/shorten-url/search")
     fun shortenUrlSearch(@RequestBody key: String): String {
-        return shortenUrls[key] ?: throw IllegalArgumentException("Invalid key")
+        return shortenUrls[key] ?: throw UrlNotFoundException()
     }
 
     @PostMapping("/shorten-url/create")

@@ -10,9 +10,9 @@ private const val DEFAULT_404_MESSAGE = "Invalid key"
 @RestControllerAdvice
 class ExceptionHandlerAdvice {
 
-    @ExceptionHandler(IllegalArgumentException::class)
+    @ExceptionHandler(UrlNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun handleIllegalArgumentException(e: IllegalArgumentException): String {
+    fun handleIllegalArgumentException(e: UrlNotFoundException): String {
         return e.message ?: DEFAULT_404_MESSAGE
     }
 }

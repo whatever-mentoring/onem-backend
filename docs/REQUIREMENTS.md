@@ -10,17 +10,41 @@
     - 참고:
         - [Setting Heap Size Parameters](https://docs.oracle.com/cd/E13188_01/jrockit/docs81/tuning/config.html#1012706)
         - [JVM Performance Tuning](https://docs.oracle.com/en/graalvm/jdk/21/docs/reference-manual/native-image/optimizations-and-performance/MemoryManagement/#performance-tuning)
-- [ ] 기존 트래픽은 RPM 30
+- [x] 기존 트래픽은 RPM 30
 
 ## 문제점
 
-- [ ] 가끔 버그가 발생하지만 원인을 알 수 없음 (p1)
-
 ## To-do
 
-- [ ] 인프라 스펙 제한 사항에 맞게 테스트 코드 작성하여 트래픽 테스트 (p1)
-
 ## Done
+
+- [x] 가끔 버그가 발생하지만 원인을 알 수 없음 (p1)
+    - [x] 로깅을 추가하여 버그 다시 발생 시 원인을 파악할 수 있도록 함 (p1)
+- [x] 인프라 스펙 제한 사항에 맞게 테스트 코드 작성하여 트래픽 테스트 (p1)
+    - [x] JMeter를 사용하여 테스트
+
+> 테스트 조건:
+>
+> |  항목              | 값      |
+>|------------------|--------|
+>| 유저 수(Users)      | 1000   |
+>| 루프 수(Loop Count) | 2      |
+>| Ramp-Up 시간       | 60 sec |
+
+> 테스트 결과는 다음과 같습니다:
+>
+>| 항목               | URL 저장	   | URL 조회    | 	TOTAL   |
+>|------------------|-----------|-----------|----------|
+>| # Samples	       | 10,000	   | 10,000	   | 20,000   |
+>| Average	         | 3 ms	     | 0 ms	     | 2 ms     |
+>| Min	             | 0 ms	     | 0 ms	     | 0 ms     |
+>| Max	             | 28 ms	    | 12 ms	    | 28 ms    |
+>| Std. Dev.	       | 2.69 ms	  | 0.84 ms	  | 2.37 ms  |
+>| Error %	         | 0.010%	   | 73.630%	  | 36.820%  |
+>| Throughput	      | 12.97914	 | 12.97923	 | 25.95825 |
+>| Received KB/sec	 | 2.10	     | 2.28	     | 4.38     |
+>| Sent KB/sec	     | 2.84	     | 2.53	     | 5.37     |
+>| Avg. Bytes	      | 166.0	    | 179.7	    | 172.9    |
 
 - [x] Exception 처리 정책 미정 (PR #63)
     - [x] RuntimeException을 상속받는 커스텀 예외를 사용

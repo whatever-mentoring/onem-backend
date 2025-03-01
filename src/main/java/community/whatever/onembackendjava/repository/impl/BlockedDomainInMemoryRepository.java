@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @Slf4j
-public class BockedDomainInMemoryRepository implements BlockedDomainRepository {
+public class BlockedDomainInMemoryRepository implements BlockedDomainRepository {
 
 	private final List<String> blockedDomains = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class BockedDomainInMemoryRepository implements BlockedDomainRepository {
 	}
 
 	private String generateReversedString(String domain) {
-		return new StringBuffer(domain).reverse().toString();
+		return new StringBuilder(domain).reverse().toString();
 	}
 
 	@Override

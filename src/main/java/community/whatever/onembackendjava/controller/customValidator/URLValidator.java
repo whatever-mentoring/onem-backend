@@ -6,9 +6,6 @@ import java.net.URL;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-/**
- *
- */
 public class URLValidator implements ConstraintValidator<ValidURL, String> {
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {

@@ -39,12 +39,24 @@ public class UrlShortenController {
 		return shortenedURL;
 	}
 
+	/**
+	 * <p> 단축 URL을 통해 원본 URL 조회</p>
+	 *
+	 * @param shortenedURL 단축 URL
+	 * @return 원본 URL
+	 */
 	@GetMapping("/shorten-url/{shortenedURL}")
 	public OriginURLResponse getOriginalURL(@PathVariable String shortenedURL) {
 		String originURL = service.getOriginURL(shortenedURL);
 		return new OriginURLResponse(originURL);
 	}
 
+	/**
+	 * <p> 단축 URL 생성 </p>
+	 *
+	 * @param req 원본 URL을 담고 있는 객체
+	 * @return 단축 URL
+	 */
 	@PostMapping("/shorten-url")
 	public ShortenedURLCreateResponse createShortenedURL(@RequestBody @Valid ShortenedURLCreateRequest req) {
 		String originUrl = req.originURL();

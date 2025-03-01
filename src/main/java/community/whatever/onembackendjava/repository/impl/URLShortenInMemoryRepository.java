@@ -20,9 +20,9 @@ public class URLShortenInMemoryRepository implements URLShortenRepository {
 	}
 
 	@Override
-	public String create(String originURL, String shortenURL) {
-		shortenUrls.put(shortenURL, originURL);
+	public String create(String originURL, String shortenedURL) {
+		shortenUrls.put(shortenedURL, originURL);
 
-		return shortenURL;
+		return shortenedURL;
 	}
 }

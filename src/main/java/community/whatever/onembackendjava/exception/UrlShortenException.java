@@ -1,5 +1,7 @@
 package community.whatever.onembackendjava.exception;
 
+import community.whatever.onembackendjava.constant.ErrorCode;
+import community.whatever.onembackendjava.constant.UrlConstants;
 import org.springframework.http.HttpStatus;
 
 public class UrlShortenException extends RuntimeException {
@@ -14,7 +16,7 @@ public class UrlShortenException extends RuntimeException {
     }
     
     public UrlShortenException(String message, HttpStatus status) {
-        this(message, status, "URL_ERROR");
+        this(message, status, ErrorCode.URL_ERROR);
     }
     
     public HttpStatus getStatus() {
@@ -27,22 +29,22 @@ public class UrlShortenException extends RuntimeException {
     
     // 자주 사용되는 예외에 대한 팩토리 메서드
     public static UrlShortenException invalidUrl(String message) {
-        return new UrlShortenException(message, HttpStatus.BAD_REQUEST, "INVALID_URL");
+        return new UrlShortenException(message, HttpStatus.BAD_REQUEST, ErrorCode.INVALID_URL);
     }
     
     public static UrlShortenException blockedDomain(String domain) {
         return new UrlShortenException(
-            "The domain '" + domain + "' has been blocked by administrator", 
+            String.format(UrlConstants.DOMAIN_BLOCKED_BY_ADMIN, domain), 
             HttpStatus.FORBIDDEN, 
-            "BLOCKED_DOMAIN"
+            ErrorCode.BLOCKED_DOMAIN
         );
     }
     
     public static UrlShortenException notFound(String key) {
         return new UrlShortenException(
-            "No URL found for key: " + key, 
+            String.format(UrlConstants.NO_URL_FOUND_FOR_KEY, key), 
             HttpStatus.NOT_FOUND, 
-            "URL_NOT_FOUND"
+            ErrorCode.URL_NOT_FOUND
         );
     }
 }

@@ -1,5 +1,6 @@
 package community.whatever.onembackendjava.exception;
 
+import community.whatever.onembackendjava.constant.ErrorCode;
 import community.whatever.onembackendjava.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorResponse errorResponse = ErrorResponse.of(
-            "INVALID_REQUEST", 
+            ErrorCode.INVALID_REQUEST, 
             ex.getMessage()
         );
         
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         ErrorResponse errorResponse = ErrorResponse.of(
-            "SERVER_ERROR", 
+            ErrorCode.GENERIC_ERROR,
             "An unexpected error occurred: " + ex.getMessage()
         );
         

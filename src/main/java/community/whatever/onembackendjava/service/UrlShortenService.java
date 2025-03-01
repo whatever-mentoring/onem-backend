@@ -1,6 +1,7 @@
 package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.dto.*;
 import community.whatever.onembackendjava.exception.UrlShortenException;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,7 @@ public class UrlShortenService {
                 String host = uri.getHost();
                 throw UrlShortenException.blockedDomain(host);
             } catch (URISyntaxException e) {
-                throw UrlShortenException.invalidUrl("Invalid URL format: " + e.getMessage());
+                throw UrlShortenException.invalidUrl(UrlConstants.INVALID_URL_FORMAT + e.getMessage());
             }
         }
         
@@ -60,24 +61,22 @@ public class UrlShortenService {
         try {
             URI uri = new URI(url);
             
-            // 스키마 검증
             String scheme = uri.getScheme();
             if (scheme == null) {
-                throw UrlShortenException.invalidUrl("URL must have a scheme (http or https)");
+                throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_SCHEME);
+            }
+
+            if (!scheme.equals("https") && !scheme.equals("http")) {
+                throw UrlShortenException.invalidUrl(UrlConstants.ONLY_HTTP_HTTPS_ALLOWED);
             }
             
-            if (!scheme.equals("http") && !scheme.equals("https")) {
-                throw UrlShortenException.invalidUrl("Only http and https schemes are allowed");
-            }
-            
-            // 호스트 검증
             String host = uri.getHost();
             if (host == null || host.isEmpty()) {
-                throw UrlShortenException.invalidUrl("URL must have a valid host");
+                throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_VALID_HOST);
             }
             
         } catch (URISyntaxException e) {
-            throw UrlShortenException.invalidUrl("Invalid URL format: " + e.getMessage());
+            throw UrlShortenException.invalidUrl(UrlConstants.INVALID_URL_FORMAT + e.getMessage());
         }
     }
 

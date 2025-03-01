@@ -2,9 +2,12 @@ package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.UrlMappingManager;
 import community.whatever.onembackendjava.dto.*;
+import community.whatever.onembackendjava.exception.UrlShortenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,16 +25,27 @@ public class UrlShortenService {
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         String url = urlMappingManager.find(request.key());
         if (url == null) {
-            throw new IllegalArgumentException("Invalid key");
+            throw UrlShortenException.notFound(request.key());
         }
         return new SearchShortenUrlResponse(url);
     }
 
     public CreateShortenUrlResponse createShortenUrl(CreateShortenUrlRequest request) {
         String originUrl = request.originUrl();
+        if (!originUrl.startsWith("http://") && !originUrl.startsWith("https://")) {
+            originUrl = "https://" + originUrl;
+        }
+        
+        validateUrl(originUrl);
         
         if (urlMappingManager.isUrlBlocked(originUrl)) {
-            throw new IllegalArgumentException("이 url은 차단되었습니다.");
+            try {
+                URI uri = new URI(originUrl);
+                String host = uri.getHost();
+                throw UrlShortenException.blockedDomain(host);
+            } catch (URISyntaxException e) {
+                throw UrlShortenException.invalidUrl("Invalid URL format: " + e.getMessage());
+            }
         }
         
         String randomKey;
@@ -40,6 +54,31 @@ public class UrlShortenService {
         } while (!urlMappingManager.putIfAbsent(randomKey, originUrl));
 
         return new CreateShortenUrlResponse(randomKey);
+    }
+
+    private void validateUrl(String url) {
+        try {
+            URI uri = new URI(url);
+            
+            // 스키마 검증
+            String scheme = uri.getScheme();
+            if (scheme == null) {
+                throw UrlShortenException.invalidUrl("URL must have a scheme (http or https)");
+            }
+            
+            if (!scheme.equals("http") && !scheme.equals("https")) {
+                throw UrlShortenException.invalidUrl("Only http and https schemes are allowed");
+            }
+            
+            // 호스트 검증
+            String host = uri.getHost();
+            if (host == null || host.isEmpty()) {
+                throw UrlShortenException.invalidUrl("URL must have a valid host");
+            }
+            
+        } catch (URISyntaxException e) {
+            throw UrlShortenException.invalidUrl("Invalid URL format: " + e.getMessage());
+        }
     }
 
     private String generateRandomKey() {
@@ -59,6 +98,10 @@ public class UrlShortenService {
     }
     
     public String getOriginalUrl(String code) {
-        return urlMappingManager.find(code);
+        String url = urlMappingManager.find(code);
+        if (url == null) {
+            throw UrlShortenException.notFound(code);
+        }
+        return url;
     }
 }

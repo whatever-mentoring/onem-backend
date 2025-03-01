@@ -7,6 +7,7 @@ plugins {
 
 group = "community.whatever"
 version = "0.0.1-SNAPSHOT"
+val coroutinesVersion = "1.10.1"
 
 java {
     toolchain {
@@ -25,6 +26,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // 비동기 코드를 테스트하기 위해 사용됩니다.
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
 kotlin {

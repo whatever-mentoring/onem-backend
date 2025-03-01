@@ -19,3 +19,29 @@ class UrlNotFoundException(
     message: String = "URL을 찾을 수 없습니다."
 ) : RuntimeException(message)
 ```
+
+## 4. 라이브러리 사용 정책
+
+- 선택근거를 명시하고 사용하여야 합니다.
+
+## 5. Dockerfile 실행 방법
+
+1. Docker 이미지를 빌드
+
+```shell
+docker build -t url-shortener .
+```
+
+2. Docker 컨테이너를 실행
+
+e.g., 1 core, 1GB memory
+
+```shell
+docker run -d --name url-shortener --memory="1g" --cpus="1.0" -p 8080:8080 url-shortener:latest
+```
+
+## 6. JMeter를 사용한 트래픽 테스트 방법
+
+```shell
+jmeter -t performance/test_plan.jmx
+```

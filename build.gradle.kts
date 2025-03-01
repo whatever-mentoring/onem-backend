@@ -8,6 +8,7 @@ plugins {
 group = "community.whatever"
 version = "0.0.1-SNAPSHOT"
 val coroutinesVersion = "1.10.1"
+val awaitilityVersion = "4.2.0"
 
 java {
     toolchain {
@@ -23,11 +24,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    // 비동기 코드를 테스트하기 위해 사용됩니다.
+    // kotlinx-coroutines-test는 코틀린 코루틴을 테스트하기 위한 라이브러리입니다.
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+    // awaitility은 비동기 코드를 테스트하기 위한 라이브러리입니다.
+    testImplementation("org.awaitility:awaitility-kotlin:$awaitilityVersion")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {

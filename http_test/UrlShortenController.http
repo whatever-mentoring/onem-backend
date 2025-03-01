@@ -1,0 +1,14 @@
+### 단축 URL 생성
+POST http://localhost:8080/shorten-url
+Content-Type: application/json
+
+{
+  "originURL": "https://www.naver.com"
+}
+
+> {%
+    client.global.set("shortenedURL", response.body.shortenedURL);
+%}
+
+### 원본 URL 조회
+GET http://localhost:8080/shorten-url/{{shortenedURL}}

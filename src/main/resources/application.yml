@@ -1,3 +1,1 @@
-spring:
-  application:
-    name: onem-backend
+spring.application.name=onem-backend

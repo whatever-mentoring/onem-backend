@@ -6,9 +6,7 @@ import org.springframework.stereotype.Service;
 
 import community.whatever.onembackendjava.exception.BusinessExceptionCode;
 import community.whatever.onembackendjava.exception.BusinessLogicException;
-import community.whatever.onembackendjava.repository.BlockedDomainRepository;
 import community.whatever.onembackendjava.repository.URLShortenRepository;
-import community.whatever.onembackendjava.utils.URLUtils;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -16,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 public class ShortenURLService {
 
 	private final URLShortenRepository repository;
-
-	private final BlockedDomainRepository blockedDomainRepository;
 
 	private final Random random = new Random();
 
@@ -40,12 +36,8 @@ public class ShortenURLService {
 	 *
 	 * @param originURL 원본 URL
 	 * @return 생성된 단축 URL
-	 * @throws BusinessLogicException 해당 URL 도메인이 블랙리스트에 있을 경우
 	 */
 	public String createShortenedURL(String originURL) {
-		if (checkDomainInBlackList(originURL)) {
-			throw new BusinessLogicException(BusinessExceptionCode.IS_BLOCKED_DOMAIN);
-		}
 		String generatedShortenedURL = generateShortenedURL();
 		String shortenedURL = repository.create(originURL, generatedShortenedURL);
 
@@ -59,11 +51,6 @@ public class ShortenURLService {
 	 */
 	private String generateShortenedURL() {
 		return String.valueOf(random.nextInt());
-	}
-
-	private boolean checkDomainInBlackList(String originURL) {
-		String domain = URLUtils.extractDomainFromURL(originURL);
-		return blockedDomainRepository.exists(domain);
 	}
 
 }

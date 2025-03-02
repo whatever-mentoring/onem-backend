@@ -38,17 +38,14 @@ public class UrlShortenService {
         }
         
         validateUrl(originUrl);
-        
-        if (urlMappingManager.isUrlBlocked(originUrl)) {
-            try {
-                URI uri = new URI(originUrl);
-                String host = uri.getHost();
-                throw UrlShortenException.blockedDomain(host);
-            } catch (URISyntaxException e) {
-                throw UrlShortenException.invalidUrl(UrlConstants.INVALID_URL_FORMAT + e.getMessage());
-            }
+
+        URI uri = getUri(originUrl);
+
+        String host = uri.getHost();
+        if (host != null && urlMappingManager.isUrlBlocked(host)) {
+            throw UrlShortenException.blockedDomain(host);
         }
-        
+
         String randomKey;
         do {
             randomKey = generateRandomKey();
@@ -57,28 +54,34 @@ public class UrlShortenService {
         return new CreateShortenUrlResponse(randomKey);
     }
 
-    private void validateUrl(String url) {
+    private URI getUri(String originUrl) {
+        URI uri;
         try {
-            URI uri = new URI(url);
-            
-            String scheme = uri.getScheme();
-            if (scheme == null) {
-                throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_SCHEME);
-            }
-
-            if (!scheme.equals("https") && !scheme.equals("http")) {
-                throw UrlShortenException.invalidUrl(UrlConstants.ONLY_HTTP_HTTPS_ALLOWED);
-            }
-            
-            String host = uri.getHost();
-            if (host == null || host.isEmpty()) {
-                throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_VALID_HOST);
-            }
-            
+            uri = new URI(originUrl);
         } catch (URISyntaxException e) {
-            throw UrlShortenException.invalidUrl(UrlConstants.INVALID_URL_FORMAT + e.getMessage());
+            throw UrlShortenException.invalidUrl(e.getMessage());
         }
+        return uri;
     }
+
+    private void validateUrl(String url) {
+        URI uri = getUri(url);
+        String scheme = uri.getScheme();
+        if (scheme == null) {
+            throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_SCHEME);
+        }
+
+        if (!scheme.equals("https") && !scheme.equals("http")) {
+            throw UrlShortenException.invalidUrl(UrlConstants.ONLY_HTTP_HTTPS_ALLOWED);
+        }
+
+        String host = uri.getHost();
+        if (host == null || host.isEmpty()) {
+            throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_VALID_HOST);
+        }
+
+    }
+
 
     private String generateRandomKey() {
         long timestamp = Instant.now().toEpochMilli();

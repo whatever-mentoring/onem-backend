@@ -39,11 +39,10 @@ public class UrlShortenController {
         String randomKey;
         while(true){
             randomKey = String.valueOf(new Random().nextInt(10000000));
-            if (shortenUrls.get(randomKey) == null){
+            if (shortenUrls.putIfAbsent(randomKey, originUrl ) == null){
                 break;
             }
         }
-        shortenUrls.put(randomKey, originUrl);
         log.info("return randomKey >> {}", randomKey);
         return randomKey;
     }

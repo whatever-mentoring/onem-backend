@@ -1,9 +1,10 @@
 package community.whatever.onembackendjava.repository.impl;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +26,19 @@ public class BlockedDomainInMemoryRepository implements BlockedDomainRepository 
 
 		try {
 			ClassPathResource resource = new ClassPathResource("blockedDomainList.txt");
-			List<String> domains = Files.readAllLines(resource.getFile().toPath(), StandardCharsets.UTF_8);
-			for (String domain : domains) {
+			InputStream inputStream = resource.getInputStream();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+			String line;
+			int cnt = 0;
+			while ((line = reader.readLine()) != null) {
+				cnt++;
+				String domain = line.trim().toLowerCase();
 				checkIsValidDomain(domain);
 				blockedDomains.add(generateReversedString(domain));
 			}
 			blockedDomains.sort(String::compareTo);
+			log.debug("{}개의 블랙리스트 도메인이 등록되었습니다.", cnt);
 		} catch (Exception e) {
 			log.error("도메인 블랙리스트 초기화시 오류 발생 = ", e);
 			throw new IllegalStateException(e);

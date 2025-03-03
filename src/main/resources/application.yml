@@ -1,3 +1,6 @@
 spring:
   application:
     name: onem-backend
+server:
+  forward-headers-strategy: native
+  address: 0.0.0.0

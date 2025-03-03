@@ -30,7 +30,7 @@ public class ShortenURLService {
 	 */
 	public String getOriginURL(String shortenedURL) {
 		String originURL = repository.findByShortenedURL(shortenedURL)
-			.orElseThrow(() -> new BusinessLogicException(BusinessExceptionCode.ORIGIN_URL_NOT_FOUND));
+			.orElseThrow(() -> BusinessLogicException.from(BusinessExceptionCode.ORIGIN_URL_NOT_FOUND));
 
 		return originURL;
 	}
@@ -44,7 +44,8 @@ public class ShortenURLService {
 	 */
 	public String createShortenedURL(String originURL) {
 		if (checkDomainInBlackList(originURL)) {
-			throw new BusinessLogicException(BusinessExceptionCode.IS_BLOCKED_DOMAIN);
+			throw BusinessLogicException.withAdditionalInfo(BusinessExceptionCode.IS_BLOCKED_DOMAIN,
+				"originURL: %s".formatted(originURL));
 		}
 		String generatedShortenedURL = generateShortenedURL();
 		String shortenedURL = repository.create(originURL, generatedShortenedURL);

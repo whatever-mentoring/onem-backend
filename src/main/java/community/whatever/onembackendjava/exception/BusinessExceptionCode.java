@@ -13,6 +13,6 @@ public enum BusinessExceptionCode {
 	IS_BLOCKED_DOMAIN(HttpStatus.BAD_REQUEST, "해당 도메인은 블랙리스트에 포함되어 있습니다.");
 
 	private final HttpStatus status;
-	private final String errorMessage;
+	private final String defaultErrorMessage;
 
 }

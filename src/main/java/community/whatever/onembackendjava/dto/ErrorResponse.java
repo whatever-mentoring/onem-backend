@@ -1,14 +1,13 @@
 package community.whatever.onembackendjava.dto;
 
-import java.time.ZonedDateTime;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 public record ErrorResponse(
     String errorCode,
     String message,
-    ZonedDateTime timestamp
+    LocalDateTime timestamp
 ) {
     public static ErrorResponse of(String errorCode, String message) {
-        return new ErrorResponse(errorCode, message, ZonedDateTime.now(ZoneId.of("Asia/Seoul")));
+        return new ErrorResponse(errorCode, message, LocalDateTime.now());
     }
 }

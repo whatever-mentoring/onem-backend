@@ -1,10 +1,14 @@
 package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.dto.*;
+import community.whatever.onembackendjava.exception.UrlShortenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,18 +26,26 @@ public class UrlShortenService {
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         String url = urlMappingManager.find(request.key());
         if (url == null) {
-            throw new IllegalArgumentException("Invalid key");
+            throw UrlShortenException.notFound(request.key());
         }
         return new SearchShortenUrlResponse(url);
     }
 
     public CreateShortenUrlResponse createShortenUrl(CreateShortenUrlRequest request) {
         String originUrl = request.originUrl();
-        
-        if (urlMappingManager.isUrlBlocked(originUrl)) {
-            throw new IllegalArgumentException("이 url은 차단되었습니다.");
+        if (!originUrl.startsWith("http://") && !originUrl.startsWith("https://")) {
+            originUrl = "https://" + originUrl;
         }
         
+        validateUrl(originUrl);
+
+        URI uri = getUri(originUrl);
+
+        String host = uri.getHost();
+        if (host != null && urlMappingManager.isUrlBlocked(host)) {
+            throw UrlShortenException.blockedDomain(host);
+        }
+
         String randomKey;
         do {
             randomKey = generateRandomKey();
@@ -41,6 +53,35 @@ public class UrlShortenService {
 
         return new CreateShortenUrlResponse(randomKey);
     }
+
+    private URI getUri(String originUrl) {
+        URI uri;
+        try {
+            uri = new URI(originUrl);
+        } catch (URISyntaxException e) {
+            throw UrlShortenException.invalidUrl(e.getMessage());
+        }
+        return uri;
+    }
+
+    private void validateUrl(String url) {
+        URI uri = getUri(url);
+        String scheme = uri.getScheme();
+        if (scheme == null) {
+            throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_SCHEME);
+        }
+
+        if (!scheme.equals("https") && !scheme.equals("http")) {
+            throw UrlShortenException.invalidUrl(UrlConstants.ONLY_HTTP_HTTPS_ALLOWED);
+        }
+
+        String host = uri.getHost();
+        if (host == null || host.isEmpty()) {
+            throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_VALID_HOST);
+        }
+
+    }
+
 
     private String generateRandomKey() {
         long timestamp = Instant.now().toEpochMilli();
@@ -59,6 +100,10 @@ public class UrlShortenService {
     }
     
     public String getOriginalUrl(String code) {
-        return urlMappingManager.find(code);
+        String url = urlMappingManager.find(code);
+        if (url == null) {
+            throw UrlShortenException.notFound(code);
+        }
+        return url;
     }
 }

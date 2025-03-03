@@ -1,6 +1,7 @@
 package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.constant.AdminConstants;
 import community.whatever.onembackendjava.dto.BlockDomainRequest;
 import community.whatever.onembackendjava.dto.BlockedDomainsResponse;
 import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
@@ -23,17 +24,17 @@ public class AdminUrlShortenService {
             request.shortenUrls().forEach((key, url) -> 
                 urlMappingManager.putIfAbsent(key, url));
         }
-        return "Success";
+        return AdminConstants.BULK_ADD_SUCCESS;
     }
     
     public String blockDomain(BlockDomainRequest request) {
         urlMappingManager.blockDomain(request.domain());
-        return "도메인 block 성공";
+        return AdminConstants.DOMAIN_BLOCK_SUCCESS;
     }
     
     public String unblockDomain(BlockDomainRequest request) {
         boolean removed = urlMappingManager.unblockDomain(request.domain());
-        return removed ? "도메인 블록 해제 성공" : "해당 도메인은 발견되지 않았습니다.";
+        return removed ? AdminConstants.DOMAIN_UNBLOCK_SUCCESS : AdminConstants.DOMAIN_NOT_FOUND;
     }
     
     public BlockedDomainsResponse getBlockedDomains() {

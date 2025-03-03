@@ -1,8 +1,8 @@
 package community.whatever.onembackendjava.repository.impl;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +11,7 @@ import community.whatever.onembackendjava.repository.URLShortenRepository;
 @Repository
 public class URLShortenInMemoryRepository implements URLShortenRepository {
 
-	private final Map<String, String> shortenUrls = new HashMap<>();
+	private final Map<String, String> shortenUrls = new ConcurrentHashMap<>();
 
 	@Override
 	public Optional<String> findByShortenedURL(String shortenedURL) {

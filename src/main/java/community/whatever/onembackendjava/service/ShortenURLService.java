@@ -1,6 +1,6 @@
 package community.whatever.onembackendjava.service;
 
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ public class ShortenURLService {
 
 	private final BlockedDomainRepository blockedDomainRepository;
 
-	private final Random random = new Random();
+	private final AtomicLong atomicLong = new AtomicLong(0);
 
 	/**
 	 * <P> 단축 URL로 원본 URL 조회</P>
@@ -58,7 +58,7 @@ public class ShortenURLService {
 	 * @return 단축 URL
 	 */
 	private String generateShortenedURL() {
-		return String.valueOf(random.nextInt());
+		return String.valueOf(atomicLong.incrementAndGet());
 	}
 
 	private boolean checkDomainInBlackList(String originURL) {

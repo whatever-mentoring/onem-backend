@@ -109,7 +109,7 @@ class UrlShortenServiceTest {
             SearchShortenUrlResponse response = urlShortenService.searchShortenUrl(request);
 
             // then
-            assertEquals(url, response.url());
+            assertEquals(url, response.originUrl());
         }
 
         @Test

@@ -17,7 +17,7 @@ public class ExceptionController {
 	public ProblemDetail handleBusinessLogicException(BusinessLogicException e) {
 		log.error("error =", e);
 		var exceptionCode = e.getExceptionCode();
-		return ProblemDetail.forStatusAndDetail(exceptionCode.getStatus(), exceptionCode.getErrorMessage());
+		return ProblemDetail.forStatusAndDetail(exceptionCode.getStatus(), exceptionCode.getDefaultErrorMessage());
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

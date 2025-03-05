@@ -20,7 +20,7 @@ public class URLUtils {
 			URL u = new URL(url);
 			return u.getHost();
 		} catch (MalformedURLException e) {
-			throw new BusinessLogicException(BusinessExceptionCode.IS_NOT_VALID_URL);
+			throw BusinessLogicException.from(BusinessExceptionCode.IS_NOT_VALID_URL);
 		}
 	}
 }

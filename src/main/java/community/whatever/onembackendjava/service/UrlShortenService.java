@@ -23,6 +23,7 @@ public class UrlShortenService {
     private final UrlMappingManager urlMappingManager;
 
     private static final int KEY_LENGTH = 6;
+    private static final long ONE_HOUR = 60 * 60 * 1000;
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         String url = urlMappingManager.find(request.key());
@@ -110,8 +111,7 @@ public class UrlShortenService {
         return url;
     }
     
-
-    @Scheduled(fixedRate = 3600000) // 1시간(3600000 밀리초)마다 실행
+    @Scheduled(fixedRate = ONE_HOUR) 
     public void cleanupExpiredUrls() {
         urlMappingManager.cleanExpiredUrls();
     }

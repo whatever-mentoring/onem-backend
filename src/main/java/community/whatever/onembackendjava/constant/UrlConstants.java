@@ -17,4 +17,7 @@ public final class UrlConstants {
     // 도메인 블랙리스트 관련 메시지
     public static final String DOMAIN_BLOCKED_BY_ADMIN = "도메인 '%s'는 관리자에 의해 차단되었습니다";
     public static final String NO_URL_FOUND_FOR_KEY = "키 '%s'에 해당하는 URL을 찾을 수 없습니다";
+    
+    // TTL 관련 설정값
+    public static final long DEFAULT_TTL_MINUTES = 60;
 }

@@ -23,7 +23,6 @@ public class UrlShortenService {
     private final UrlMappingManager urlMappingManager;
 
     private static final int KEY_LENGTH = 6;
-    private static final long DEFAULT_TTL_MINUTES = 60;
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         String url = urlMappingManager.find(request.key());
@@ -48,7 +47,7 @@ public class UrlShortenService {
             throw UrlShortenException.blockedDomain(host);
         }
 
-        long ttlMinutes = request.ttlMinutes() != null ? request.ttlMinutes() : DEFAULT_TTL_MINUTES;
+        long ttlMinutes = request.ttlMinutes() != null ? request.ttlMinutes() : UrlConstants.DEFAULT_TTL_MINUTES;
 
         String randomKey;
         boolean success;

@@ -1,6 +1,7 @@
 package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.dto.CreateShortenUrlRequest;
 import community.whatever.onembackendjava.dto.CreateShortenUrlResponse;
 import community.whatever.onembackendjava.dto.SearchShortenUrlRequest;
@@ -48,7 +49,7 @@ class UrlShortenServiceTest {
 
             // then
             assertNotNull(response);
-            verify(urlMappingManager).putIfAbsent(anyString(), eq(originUrl), eq(60L)); // 기본값 60분 확인
+            verify(urlMappingManager).putIfAbsent(anyString(), eq(originUrl), eq(UrlConstants.DEFAULT_TTL_MINUTES)); 
         }
 
         @Test

@@ -1,13 +1,15 @@
 package community.whatever.onembackendjava;
 
+import community.whatever.onembackendjava.constant.UrlConstants;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.time.Instant;
 import java.util.stream.Collectors;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,8 +41,6 @@ public class UrlMappingManager {
     private final Map<String, UrlMapping> shortenUrls = new ConcurrentHashMap<>();
     private final Set<String> blockedDomains = ConcurrentHashMap.newKeySet();
     
-    private static final long DEFAULT_TTL_MINUTES = 1;
-
     public String find(String key) {
         UrlMapping mapping = shortenUrls.get(key);
         
@@ -55,7 +55,7 @@ public class UrlMappingManager {
     }
 
     public boolean putIfAbsent(String key, String url) {
-        return putIfAbsent(key, url, DEFAULT_TTL_MINUTES);
+        return putIfAbsent(key, url, UrlConstants.DEFAULT_TTL_MINUTES);
     }
     
     public boolean putIfAbsent(String key, String url, long ttlMinutes) {

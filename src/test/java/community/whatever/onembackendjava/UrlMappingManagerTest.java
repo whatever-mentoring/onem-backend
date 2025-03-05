@@ -192,7 +192,7 @@ class UrlMappingManagerTest {
             UrlMappingManager manager = new UrlMappingManager();
             String key = "ttl123";
             String url = "https://example.com";
-            long ttlMinutes = 5; // 5분 TTL
+            Integer ttlMinutes = 5; // 5분 TTL
             
             // when
             boolean result = manager.putIfAbsent(key, url, ttlMinutes);
@@ -210,7 +210,7 @@ class UrlMappingManagerTest {
             UrlMappingManager manager = new UrlMappingManager();
             String key = "ttl123";
             String url = "https://example.com";
-            long ttlMinutes = 0; // 즉시 만료되도록 0분 설정 (내부적으로 처리됨)
+            Integer ttlMinutes = 0; // 즉시 만료되도록 0분 설정 (내부적으로 처리됨)
             
             manager.putIfAbsent(key, url, ttlMinutes);
             

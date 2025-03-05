@@ -10,6 +10,6 @@ public record CreateShortenUrlRequest(
         String originUrl,
         
         @Min(value = 1, message = "TTL은 최소 1분 이상이어야 합니다.")
-        Long ttlMinutes
+        Integer ttlMinutes
 ) {
 }

@@ -42,7 +42,7 @@ class UrlShortenServiceTest {
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, null);
 
             // URL 생성 성공 시뮬레이션
-            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), anyLong())).thenReturn(true);
+            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), anyInt())).thenReturn(true);
 
             // when
             CreateShortenUrlResponse response = urlShortenService.createShortenUrl(request);
@@ -57,11 +57,11 @@ class UrlShortenServiceTest {
         void createShortenUrl_WithCustomTTL_Success() {
             // given
             String originUrl = "https://example.com";
-            Long customTTL = 30L; // 30분
+            Integer customTTL = 30; // 30분
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, customTTL);
 
             // URL 생성 성공 시뮬레이션
-            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), anyLong())).thenReturn(true);
+            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), anyInt())).thenReturn(true);
 
             // when
             CreateShortenUrlResponse response = urlShortenService.createShortenUrl(request);
@@ -76,10 +76,10 @@ class UrlShortenServiceTest {
         void createShortenUrl_DuplicateKey_RetrySuccess() {
             // given
             String originUrl = "https://example.com";
-            CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, 5L);
+            CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, 5);
 
             // 첫 시도는 실패, 두 번째 시도는 성공 시뮬레이션
-            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), eq(5L)))
+            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), eq(5)))
                     .thenReturn(false)
                     .thenReturn(true);
 
@@ -88,7 +88,7 @@ class UrlShortenServiceTest {
 
             // then
             assertNotNull(response);
-            verify(urlMappingManager, times(2)).putIfAbsent(anyString(), eq(originUrl), eq(5L));
+            verify(urlMappingManager, times(2)).putIfAbsent(anyString(), eq(originUrl), eq(5));
         }
     }
 

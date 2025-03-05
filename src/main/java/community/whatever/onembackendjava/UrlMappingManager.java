@@ -58,7 +58,7 @@ public class UrlMappingManager {
         return putIfAbsent(key, url, UrlConstants.DEFAULT_TTL_MINUTES);
     }
     
-    public boolean putIfAbsent(String key, String url, long ttlMinutes) {
+    public boolean putIfAbsent(String key, String url, Integer ttlMinutes) {
         long ttlSeconds = ttlMinutes * 60;
         Instant expiryTime = Instant.now().plusSeconds(ttlSeconds);
         UrlMapping newMapping = new UrlMapping(url, expiryTime);

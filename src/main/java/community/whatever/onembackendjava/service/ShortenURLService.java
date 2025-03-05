@@ -48,7 +48,7 @@ public class ShortenURLService {
 				"originURL: %s".formatted(originURL));
 		}
 		String generatedShortenedURL = generateShortenedURL();
-		String shortenedURL = repository.create(originURL, generatedShortenedURL);
+		String shortenedURL = repository.save(originURL, generatedShortenedURL);
 
 		return shortenedURL;
 	}

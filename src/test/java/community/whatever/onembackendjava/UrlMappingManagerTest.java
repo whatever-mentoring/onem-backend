@@ -4,8 +4,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -175,6 +177,101 @@ class UrlMappingManagerTest {
             assertEquals(2, blockedDomains.size());
             assertTrue(blockedDomains.contains(domain1));
             assertTrue(blockedDomains.contains(domain2));
+        }
+    }
+    
+    @Nested
+    @DisplayName("URL 만료(TTL) 기능 테스트")
+    class UrlExpirationTest {
+        
+        @Test
+        @DisplayName("TTL을 지정하여 URL을 추가하고 만료 전에는 조회 가능하다")
+        void putWithTTL_BeforeExpiration_Success() {
+            // given
+            UrlMappingManager manager = new UrlMappingManager();
+            String key = "ttl123";
+            String url = "https://example.com";
+            long ttlMinutes = 5; // 5분 TTL
+            
+            // when
+            boolean result = manager.putIfAbsent(key, url, ttlMinutes);
+            String foundUrl = manager.find(key);
+            
+            // then
+            assertTrue(result);
+            assertEquals(url, foundUrl);
+        }
+        
+        @Test
+        @DisplayName("TTL이 만료된 URL은 null을 반환한다")
+        void find_ExpiredUrl_ReturnsNull() throws InterruptedException {
+            // given
+            UrlMappingManager manager = new UrlMappingManager();
+            String key = "ttl123";
+            String url = "https://example.com";
+            long ttlMinutes = 0; // 즉시 만료되도록 0분 설정 (내부적으로 처리됨)
+            
+            manager.putIfAbsent(key, url, ttlMinutes);
+            
+            // 약간의 대기 시간 (내부 처리 시간 고려)
+            TimeUnit.MILLISECONDS.sleep(100);
+            
+            // when
+            String foundUrl = manager.find(key);
+            
+            // then
+            assertNull(foundUrl);
+        }
+        
+        @Test
+        @DisplayName("만료된 URL은 findAll 결과에 포함되지 않는다")
+        void findAll_ExcludesExpiredUrls() throws InterruptedException {
+            // given
+            UrlMappingManager manager = new UrlMappingManager();
+            String expiredKey = "expired";
+            String validKey = "valid";
+            String url1 = "https://expired.com";
+            String url2 = "https://valid.com";
+            
+            manager.putIfAbsent(expiredKey, url1, 0); // 즉시 만료
+            manager.putIfAbsent(validKey, url2, 5); // 5분 유효
+            
+            // 약간의 대기 시간
+            TimeUnit.MILLISECONDS.sleep(100);
+            
+            // when
+            Map<String, String> allUrls = manager.findAll();
+            
+            // then
+            assertEquals(1, allUrls.size());
+            assertNull(allUrls.get(expiredKey));
+            assertEquals(url2, allUrls.get(validKey));
+        }
+        
+        @Test
+        @DisplayName("cleanExpiredUrls 메서드는 만료된 URL을 제거한다")
+        void cleanExpiredUrls_RemovesExpiredUrls() throws InterruptedException {
+            // given
+            UrlMappingManager manager = new UrlMappingManager();
+            String expiredKey = "expired";
+            String validKey = "valid";
+            String url1 = "https://expired.com";
+            String url2 = "https://valid.com";
+            
+            manager.putIfAbsent(expiredKey, url1, 0); // 즉시 만료
+            manager.putIfAbsent(validKey, url2, 5); // 5분 유효
+            
+            // 약간의 대기 시간
+            TimeUnit.MILLISECONDS.sleep(100);
+            
+            // when
+            manager.cleanExpiredUrls();
+            Map<String, String> allUrls = manager.findAll();
+            
+            // then
+            assertEquals(1, allUrls.size());
+            assertNull(manager.find(expiredKey));
+            assertEquals(url2, manager.find(validKey));
         }
     }
 }

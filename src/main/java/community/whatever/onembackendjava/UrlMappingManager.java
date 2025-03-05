@@ -7,24 +7,78 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.time.Instant;
+import java.util.stream.Collectors;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 @Component
 public class UrlMappingManager {
-    private final Map<String, String> shortenUrls = new ConcurrentHashMap<>();
+    private static class UrlMapping {
+        private final String originalUrl;
+        private final Instant expiryTime;
+        
+        public UrlMapping(String originalUrl, Instant expiryTime) {
+            this.originalUrl = originalUrl;
+            this.expiryTime = expiryTime;
+        }
+        
+        public String getOriginalUrl() {
+            return originalUrl;
+        }
+        
+        public Instant getExpiryTime() {
+            return expiryTime;
+        }
+        
+        public boolean isExpired() {
+            return Instant.now().isAfter(expiryTime);
+        }
+    }
+
+    private final Map<String, UrlMapping> shortenUrls = new ConcurrentHashMap<>();
     private final Set<String> blockedDomains = ConcurrentHashMap.newKeySet();
+    
+    private static final long DEFAULT_TTL_MINUTES = 1;
 
     public String find(String key) {
-        return shortenUrls.get(key);
+        UrlMapping mapping = shortenUrls.get(key);
+        
+        if (mapping == null || mapping.isExpired()) {
+            if (mapping != null && mapping.isExpired()) {
+                shortenUrls.remove(key);
+            }
+            return null;
+        }
+        
+        return mapping.getOriginalUrl();
     }
 
     public boolean putIfAbsent(String key, String url) {
-        return shortenUrls.putIfAbsent(key, url) == null;
+        return putIfAbsent(key, url, DEFAULT_TTL_MINUTES);
+    }
+    
+    public boolean putIfAbsent(String key, String url, long ttlMinutes) {
+        long ttlSeconds = ttlMinutes * 60;
+        Instant expiryTime = Instant.now().plusSeconds(ttlSeconds);
+        UrlMapping newMapping = new UrlMapping(url, expiryTime);
+        
+        return shortenUrls.putIfAbsent(key, newMapping) == null;
     }
 
     public Map<String, String> findAll() {
-        return new HashMap<>(shortenUrls);
+        return shortenUrls.entrySet().stream()
+                .filter(entry -> !entry.getValue().isExpired())
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    entry -> entry.getValue().getOriginalUrl(),
+                    (existing, replacement) -> existing,
+                    HashMap::new
+                ));
+    }
+    
+    public void cleanExpiredUrls() {
+        shortenUrls.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
     
     public void blockDomain(String domain) {

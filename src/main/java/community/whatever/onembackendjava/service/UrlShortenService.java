@@ -5,6 +5,7 @@ import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.dto.*;
 import community.whatever.onembackendjava.exception.UrlShortenException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -22,6 +23,7 @@ public class UrlShortenService {
     private final UrlMappingManager urlMappingManager;
 
     private static final int KEY_LENGTH = 6;
+    private static final long DEFAULT_TTL_MINUTES = 60;
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         String url = urlMappingManager.find(request.key());
@@ -46,10 +48,14 @@ public class UrlShortenService {
             throw UrlShortenException.blockedDomain(host);
         }
 
+        long ttlMinutes = request.ttlMinutes() != null ? request.ttlMinutes() : DEFAULT_TTL_MINUTES;
+
         String randomKey;
+        boolean success;
         do {
             randomKey = generateRandomKey();
-        } while (!urlMappingManager.putIfAbsent(randomKey, originUrl));
+            success = urlMappingManager.putIfAbsent(randomKey, originUrl, ttlMinutes);
+        } while (!success);
 
         return new CreateShortenUrlResponse(randomKey);
     }
@@ -79,9 +85,7 @@ public class UrlShortenService {
         if (host == null || host.isEmpty()) {
             throw UrlShortenException.invalidUrl(UrlConstants.URL_MUST_HAVE_VALID_HOST);
         }
-
     }
-
 
     private String generateRandomKey() {
         long timestamp = Instant.now().toEpochMilli();
@@ -105,5 +109,11 @@ public class UrlShortenService {
             throw UrlShortenException.notFound(code);
         }
         return url;
+    }
+    
+
+    @Scheduled(fixedRate = 3600000) // 1시간(3600000 밀리초)마다 실행
+    public void cleanupExpiredUrls() {
+        urlMappingManager.cleanExpiredUrls();
     }
 }

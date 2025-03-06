@@ -18,6 +18,6 @@ public interface URLShortenRepository {
 	 * @param shortenedURL 저장할 단축 URL
 	 * @return 저장된 단축 URL
 	 */
-	String create(String originURL, String shortenedURL);
+	String save(String originURL, String shortenedURL);
 
 }

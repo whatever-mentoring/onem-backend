@@ -20,26 +20,6 @@ public class UrlShortenController {
 	private final ShortenURLService service;
 
 	/**
-	 * @deprecated use {@link #getOriginalURL(String)}
-	 */
-	@Deprecated
-	@PostMapping("/shorten-url/search")
-	public String shortenUrlSearch(@RequestBody String key) {
-		String shortenURL = service.getOriginURL(key);
-		return shortenURL;
-	}
-
-	/**
-	 * @deprecated use {@link #createShortenedURL(ShortenedURLCreateRequest)}
-	 */
-	@Deprecated
-	@PostMapping("/shorten-url/create")
-	public String shortenUrlCreate(@RequestBody String originUrl) {
-		String shortenedURL = service.createShortenedURL(originUrl);
-		return shortenedURL;
-	}
-
-	/**
 	 * <p> 단축 URL을 통해 원본 URL 조회</p>
 	 *
 	 * @param shortenedURL 단축 URL

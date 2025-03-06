@@ -3,7 +3,6 @@ package community.whatever.onembackendjava;
 import community.whatever.onembackendjava.constant.UrlConstants;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,27 +15,6 @@ import java.net.URISyntaxException;
 
 @Component
 public class UrlMappingManager {
-    private static class UrlMapping {
-        private final String originalUrl;
-        private final Instant expiryTime;
-        
-        public UrlMapping(String originalUrl, Instant expiryTime) {
-            this.originalUrl = originalUrl;
-            this.expiryTime = expiryTime;
-        }
-        
-        public String getOriginalUrl() {
-            return originalUrl;
-        }
-        
-        public Instant getExpiryTime() {
-            return expiryTime;
-        }
-        
-        public boolean isExpired() {
-            return Instant.now().isAfter(expiryTime);
-        }
-    }
 
     private final Map<String, UrlMapping> shortenUrls = new ConcurrentHashMap<>();
     private final Set<String> blockedDomains = ConcurrentHashMap.newKeySet();
@@ -51,7 +29,7 @@ public class UrlMappingManager {
             return null;
         }
         
-        return mapping.getOriginalUrl();
+        return mapping.originalUrl();
     }
 
     public boolean putIfAbsent(String key, String url) {
@@ -71,7 +49,7 @@ public class UrlMappingManager {
                 .filter(entry -> !entry.getValue().isExpired())
                 .collect(Collectors.toMap(
                     Map.Entry::getKey,
-                    entry -> entry.getValue().getOriginalUrl(),
+                    entry -> entry.getValue().originalUrl(),
                     (existing, replacement) -> existing,
                     HashMap::new
                 ));

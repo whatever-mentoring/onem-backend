@@ -6,23 +6,37 @@ import community.whatever.onembackendjava.dto.BlockDomainRequest;
 import community.whatever.onembackendjava.dto.BlockedDomainsResponse;
 import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
 import community.whatever.onembackendjava.dto.BulkAddShortenUrlsRequest;
+import community.whatever.onembackendjava.dto.ShortenUrlWithExpiryInfo;
+import community.whatever.onembackendjava.dto.ShortenUrlsWithExpiryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class AdminUrlShortenService {
     
     private final UrlMappingManager urlMappingManager;
-    
-    public ShortenUrlsMapResponse getAllShortenUrls() {
-        return new ShortenUrlsMapResponse(urlMappingManager.findAll());
+
+
+    public ShortenUrlsMapResponse getValidShortenUrls() {
+        return new ShortenUrlsMapResponse(urlMappingManager.findValidUrls());
+    }
+
+    public ShortenUrlsWithExpiryResponse getAllShortenUrlsWithExpiry() {
+        Map<String, ShortenUrlWithExpiryInfo> urlInfoMap = urlMappingManager.findAllUrls();
+        return new ShortenUrlsWithExpiryResponse(urlInfoMap);
+    }
+
+    public String cleanExpiredUrls() {
+        urlMappingManager.cleanExpiredUrls();
+        return AdminConstants.CLEANUP_SUCCESS;
     }
     
     public String bulkAddShortenUrls(BulkAddShortenUrlsRequest request) {
         if (request.shortenUrls() != null) {
-            request.shortenUrls().forEach((key, url) -> 
-                urlMappingManager.putIfAbsent(key, url));
+            request.shortenUrls().forEach(urlMappingManager::putIfAbsent);
         }
         return AdminConstants.BULK_ADD_SUCCESS;
     }

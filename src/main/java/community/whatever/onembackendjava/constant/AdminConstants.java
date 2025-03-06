@@ -11,4 +11,5 @@ public final class AdminConstants {
     public static final String DOMAIN_BLOCK_SUCCESS = "도메인 차단 성공";
     public static final String DOMAIN_UNBLOCK_SUCCESS = "도메인 차단 해제 성공";
     public static final String DOMAIN_NOT_FOUND = "해당 도메인은 발견되지 않았습니다";
+    public static final String CLEANUP_SUCCESS = "만료된 URL 삭제 성공";
 }

@@ -1,6 +1,7 @@
 package community.whatever.onembackendjava;
 
 import community.whatever.onembackendjava.constant.UrlConstants;
+import community.whatever.onembackendjava.dto.ShortenUrlWithExpiryInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -68,10 +69,10 @@ class UrlMappingManagerTest {
             // then
             assertNull(foundUrl);
         }
-        
+
         @Test
-        @DisplayName("모든 단축 URL을 조회할 수 있다")
-        void findAll_ReturnsAllUrls() {
+        @DisplayName("모든 단축 URL을 만료 정보와 함께 조회할 수 있다")
+        void findAllUrls_ReturnsAllUrlsWithExpiryInfo() {
             // given
             UrlMappingManager manager = new UrlMappingManager();
             String key1 = "abc123";
@@ -83,12 +84,14 @@ class UrlMappingManagerTest {
             manager.putIfAbsent(key2, url2);
             
             // when
-            Map<String, String> allUrls = manager.findAll();
+            Map<String, ShortenUrlWithExpiryInfo> urlsWithExpiry = manager.findAllUrls();
             
             // then
-            assertEquals(2, allUrls.size());
-            assertEquals(url1, allUrls.get(key1));
-            assertEquals(url2, allUrls.get(key2));
+            assertEquals(2, urlsWithExpiry.size());
+            assertEquals(url1, urlsWithExpiry.get(key1).originalUrl());
+            assertEquals(url2, urlsWithExpiry.get(key2).originalUrl());
+            assertNotNull(urlsWithExpiry.get(key1).expiryTime());
+            assertNotNull(urlsWithExpiry.get(key2).expiryTime());
         }
     }
     
@@ -225,8 +228,8 @@ class UrlMappingManagerTest {
         }
         
         @Test
-        @DisplayName("만료된 URL은 findAll 결과에 포함되지 않는다")
-        void findAll_ExcludesExpiredUrls() throws InterruptedException {
+        @DisplayName("유효한 URL만 findValidUrls 결과에 포함된다")
+        void findValidUrls_IncludesOnlyValidUrls() throws InterruptedException {
             // given
             UrlMappingManager manager = new UrlMappingManager();
             String expiredKey = "expired";
@@ -241,12 +244,41 @@ class UrlMappingManagerTest {
             TimeUnit.MILLISECONDS.sleep(100);
             
             // when
-            Map<String, String> allUrls = manager.findAll();
+            Map<String, String> validUrls = manager.findValidUrls();
             
             // then
-            assertEquals(1, allUrls.size());
-            assertNull(allUrls.get(expiredKey));
-            assertEquals(url2, allUrls.get(validKey));
+            assertEquals(1, validUrls.size());
+            assertNull(validUrls.get(expiredKey));
+            assertEquals(url2, validUrls.get(validKey));
+        }
+        
+        @Test
+        @DisplayName("모든 URL은 만료 여부와 상관없이 findAllUrls 결과에 포함된다")
+        void findAllUrls_IncludesAllUrls() throws InterruptedException {
+            // given
+            UrlMappingManager manager = new UrlMappingManager();
+            String expiredKey = "expired";
+            String validKey = "valid";
+            String url1 = "https://expired.com";
+            String url2 = "https://valid.com";
+            
+            manager.putIfAbsent(expiredKey, url1, 0); // 즉시 만료
+            manager.putIfAbsent(validKey, url2, 5); // 5분 유효
+            
+            // 약간의 대기 시간
+            TimeUnit.MILLISECONDS.sleep(100);
+            
+            // when
+            Map<String, ShortenUrlWithExpiryInfo> allUrls = manager.findAllUrls();
+            
+            // then
+            assertEquals(2, allUrls.size());
+            assertNotNull(allUrls.get(expiredKey));
+            assertNotNull(allUrls.get(validKey));
+            assertEquals(url1, allUrls.get(expiredKey).originalUrl());
+            assertEquals(url2, allUrls.get(validKey).originalUrl());
+            assertTrue(allUrls.get(expiredKey).expired());
+            assertFalse(allUrls.get(validKey).expired());
         }
         
         @Test
@@ -267,7 +299,7 @@ class UrlMappingManagerTest {
             
             // when
             manager.cleanExpiredUrls();
-            Map<String, String> allUrls = manager.findAll();
+            Map<String, ShortenUrlWithExpiryInfo> allUrls = manager.findAllUrls();
             
             // then
             assertEquals(1, allUrls.size());

@@ -1,6 +1,7 @@
 package community.whatever.onembackendjava;
 
 import community.whatever.onembackendjava.constant.UrlConstants;
+import community.whatever.onembackendjava.dto.ShortenUrlWithExpiryInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -41,7 +42,12 @@ public class UrlMappingManager {
         return shortenUrls.putIfAbsent(key, newMapping) == null;
     }
 
-    public Map<String, String> findAll() {
+    /**
+     * 유효한(만료되지 않은) URL 매핑만 반환합니다.
+     * 
+     * @return 유효한 URL 매핑만 포함한 Map (key: 단축 URL 키, value: 원본 URL)
+     */
+    public Map<String, String> findValidUrls() {
         return shortenUrls.entrySet().stream()
                 .filter(entry -> !entry.getValue().isExpired())
                 .collect(Collectors.toMap(
@@ -52,6 +58,24 @@ public class UrlMappingManager {
                 ));
     }
     
+    /**
+     * 만료 여부와 상관없이 모든 URL 매핑을 반환합니다.
+     * 
+     * @return 모든 URL 매핑을 포함한 Map (key: 단축 URL 키, value: 원본 URL)
+     */
+    public Map<String, ShortenUrlWithExpiryInfo> findAllUrls() {
+        return shortenUrls.entrySet().stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    entry -> new ShortenUrlWithExpiryInfo(entry.getValue().originalUrl(), entry.getValue().expiryTime()),
+                    (existing, replacement) -> existing,
+                    HashMap::new
+                ));
+    }
+    
+    /**
+     * 만료된 URL 매핑을 모두 삭제합니다. 관리자 기능으로 사용됩니다.
+     */
     public void cleanExpiredUrls() {
         shortenUrls.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }

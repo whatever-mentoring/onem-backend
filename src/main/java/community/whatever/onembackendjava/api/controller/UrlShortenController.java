@@ -1,6 +1,6 @@
-package community.whatever.onembackendjava.controller;
+package community.whatever.onembackendjava.api.controller;
 
-import community.whatever.onembackendjava.service.UrlShortenService;
+import community.whatever.onembackendjava.api.service.UrlShortenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

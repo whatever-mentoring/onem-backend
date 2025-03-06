@@ -2,22 +2,23 @@ package community.whatever.onembackendjava.repository;
 
 import java.util.Optional;
 
+import community.whatever.onembackendjava.entity.ShortenedURLEntity;
+
 public interface URLShortenRepository {
 	/**
-	 * <p> 단축 URL로 저장되어 있는 원본 URL 조회</p>
+	 * <p> 단축된 URL로 조회</p>
 	 *
-	 * @param shortenedURL 단축 URL
-	 * @return 원본 URL
+	 * @param shortenedURL 단축된 URL
+	 * @return 단축 URL entity
 	 */
-	Optional<String> findByShortenedURL(String shortenedURL);
+	Optional<ShortenedURLEntity> findByShortenedURL(String shortenedURL);
 
 	/**
 	 * <p>원본 URL과 단축 URL을 저장</p>
 	 *
-	 * @param originURL    저장할 원본 URL
-	 * @param shortenedURL 저장할 단축 URL
-	 * @return 저장된 단축 URL
+	 * @param shortenedURLEntity 저장할 단축 URL 객체
+	 * @return 저장된 단축 URL entity
 	 */
-	String save(String originURL, String shortenedURL);
+	ShortenedURLEntity save(ShortenedURLEntity shortenedURLEntity);
 
 }

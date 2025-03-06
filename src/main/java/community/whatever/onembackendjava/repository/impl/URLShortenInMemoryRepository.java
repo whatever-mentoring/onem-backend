@@ -6,23 +6,23 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
+import community.whatever.onembackendjava.entity.ShortenedURLEntity;
 import community.whatever.onembackendjava.repository.URLShortenRepository;
 
 @Repository
 public class URLShortenInMemoryRepository implements URLShortenRepository {
 
-	private final Map<String, String> shortenUrls = new ConcurrentHashMap<>();
+	private final Map<String, ShortenedURLEntity> shortenUrls = new ConcurrentHashMap<>();
 
 	@Override
-	public Optional<String> findByShortenedURL(String shortenedURL) {
-		String originURL = shortenUrls.get(shortenedURL);
-		return Optional.ofNullable(originURL);
+	public Optional<ShortenedURLEntity> findByShortenedURL(String shortenedURL) {
+		return Optional.ofNullable(shortenUrls.get(shortenedURL));
 	}
 
 	@Override
-	public String save(String originURL, String shortenedURL) {
-		shortenUrls.put(shortenedURL, originURL);
+	public ShortenedURLEntity save(ShortenedURLEntity shortenedURLEntity) {
+		shortenUrls.put(shortenedURLEntity.getShortenedURL(), shortenedURLEntity);
 
-		return shortenedURL;
+		return shortenedURLEntity;
 	}
 }

@@ -39,9 +39,7 @@ public class UrlShortenController {
 	 */
 	@PostMapping("/shorten-url")
 	public ShortenedURLCreateResponse createShortenedURL(@RequestBody @Valid ShortenedURLCreateRequest req) {
-		String originUrl = req.originURL();
-		String shortenedURL = service.createShortenedURL(originUrl);
-		ShortenedURLCreateResponse res = new ShortenedURLCreateResponse(shortenedURL);
+		ShortenedURLCreateResponse res = service.createShortenedURL(req);
 		return res;
 	}
 

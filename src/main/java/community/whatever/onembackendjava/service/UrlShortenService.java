@@ -48,7 +48,7 @@ public class UrlShortenService {
             throw UrlShortenException.blockedDomain(host);
         }
 
-        Integer ttlMinutes = request.ttlMinutes() != null ? request.ttlMinutes() : UrlConstants.DEFAULT_TTL_MINUTES;
+        Long ttlMinutes = request.ttlMinutes() != null ? request.ttlMinutes() : UrlConstants.DEFAULT_TTL_MINUTES;
 
         String randomKey;
         boolean success;

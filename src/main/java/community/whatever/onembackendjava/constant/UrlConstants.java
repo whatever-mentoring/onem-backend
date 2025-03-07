@@ -19,5 +19,5 @@ public final class UrlConstants {
     public static final String NO_URL_FOUND_FOR_KEY = "키 '%s'에 해당하는 URL을 찾을 수 없습니다";
     
     // TTL 관련 설정값
-    public static final Integer DEFAULT_TTL_MINUTES = 60;
+    public static final Long DEFAULT_TTL_MINUTES = 60L;
 }

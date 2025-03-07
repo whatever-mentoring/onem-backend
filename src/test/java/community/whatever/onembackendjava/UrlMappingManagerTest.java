@@ -195,7 +195,7 @@ class UrlMappingManagerTest {
             UrlMappingManager manager = new UrlMappingManager();
             String key = "ttl123";
             String url = "https://example.com";
-            Integer ttlMinutes = 5; // 5분 TTL
+            Long ttlMinutes = 5L; // 5분 TTL
             
             // when
             boolean result = manager.putIfAbsent(key, url, ttlMinutes);
@@ -213,7 +213,7 @@ class UrlMappingManagerTest {
             UrlMappingManager manager = new UrlMappingManager();
             String key = "ttl123";
             String url = "https://example.com";
-            Integer ttlMinutes = 0; // 즉시 만료되도록 0분 설정 (내부적으로 처리됨)
+            Long ttlMinutes = 0L; // 즉시 만료되도록 0분 설정 (내부적으로 처리됨)
             
             manager.putIfAbsent(key, url, ttlMinutes);
             
@@ -237,8 +237,8 @@ class UrlMappingManagerTest {
             String url1 = "https://expired.com";
             String url2 = "https://valid.com";
             
-            manager.putIfAbsent(expiredKey, url1, 0); // 즉시 만료
-            manager.putIfAbsent(validKey, url2, 5); // 5분 유효
+            manager.putIfAbsent(expiredKey, url1, 0L); // 즉시 만료
+            manager.putIfAbsent(validKey, url2, 5L); // 5분 유효
             
             // 약간의 대기 시간
             TimeUnit.MILLISECONDS.sleep(100);
@@ -262,8 +262,8 @@ class UrlMappingManagerTest {
             String url1 = "https://expired.com";
             String url2 = "https://valid.com";
             
-            manager.putIfAbsent(expiredKey, url1, 0); // 즉시 만료
-            manager.putIfAbsent(validKey, url2, 5); // 5분 유효
+            manager.putIfAbsent(expiredKey, url1, 0L); // 즉시 만료
+            manager.putIfAbsent(validKey, url2, 5L); // 5분 유효
             
             // 약간의 대기 시간
             TimeUnit.MILLISECONDS.sleep(100);
@@ -291,8 +291,8 @@ class UrlMappingManagerTest {
             String url1 = "https://expired.com";
             String url2 = "https://valid.com";
             
-            manager.putIfAbsent(expiredKey, url1, 0); // 즉시 만료
-            manager.putIfAbsent(validKey, url2, 5); // 5분 유효
+            manager.putIfAbsent(expiredKey, url1, 0L); // 즉시 만료
+            manager.putIfAbsent(validKey, url2, 5L); // 5분 유효
             
             // 약간의 대기 시간
             TimeUnit.MILLISECONDS.sleep(100);

@@ -36,7 +36,7 @@ public class UrlMappingManager {
         return putIfAbsent(key, url, UrlConstants.DEFAULT_TTL_MINUTES);
     }
     
-    public boolean putIfAbsent(String key, String url, Integer ttlMinutes) {
+    public boolean putIfAbsent(String key, String url, Long ttlMinutes) {
         UrlMapping newMapping = new UrlMapping(url, ttlMinutes);
         
         return shortenUrls.putIfAbsent(key, newMapping) == null;

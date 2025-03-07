@@ -1,6 +1,7 @@
 package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.dto.*;
 import community.whatever.onembackendjava.exception.UrlShortenException;
@@ -21,6 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class UrlShortenService {
     private final UrlMappingManager urlMappingManager;
+    private final AppEnvironment appEnvironment;
 
     private static final int KEY_LENGTH = 6;
     private static final long ONE_HOUR = 60 * 60 * 1000;
@@ -28,6 +30,7 @@ public class UrlShortenService {
 
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
+        validatePrefix(request.key());
         String url = urlMappingManager.find(request.key());
         if (url == null) {
             throw UrlShortenException.notFound(request.key());
@@ -90,6 +93,8 @@ public class UrlShortenService {
     }
 
     private String generateRandomKey() {
+        String envPrefix = appEnvironment.getPrefix();
+
         long timestamp = Instant.now().toEpochMilli();
         long random = ThreadLocalRandom.current().nextLong();
         String combined = timestamp + ":" + random;
@@ -98,7 +103,9 @@ public class UrlShortenService {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(combined.getBytes(StandardCharsets.UTF_8));
             String encoded = Base64.getUrlEncoder().encodeToString(hash);
-            return encoded.substring(0, KEY_LENGTH);
+            String randomPart = encoded.substring(0, KEY_LENGTH);
+            
+            return envPrefix + "-" + randomPart;
         } catch (NoSuchAlgorithmException e) {
             System.err.println("SHA-256 알고리즘을 사용할 수 없습니다: " + e.getMessage());
             throw new RuntimeException(e);
@@ -106,11 +113,19 @@ public class UrlShortenService {
     }
     
     public String getOriginalUrl(String code) {
+        validatePrefix(code);
+        
         String url = urlMappingManager.find(code);
         if (url == null) {
             throw UrlShortenException.notFound(code);
         }
         return url;
+    }
+
+    private void validatePrefix(String code) {
+        if (code == null || code.length() < 3 || !code.startsWith(appEnvironment.getPrefix())) {
+            throw UrlShortenException.invalidUrl("적합하지 않은 환경입니다 : " + appEnvironment.name());
+        }
     }
     
     @Scheduled(fixedRate = ONE_HOUR) 

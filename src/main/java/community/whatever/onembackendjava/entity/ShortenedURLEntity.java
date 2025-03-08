@@ -1,5 +1,7 @@
 package community.whatever.onembackendjava.entity;
 
+import static lombok.AccessLevel.*;
+
 import java.time.LocalDateTime;
 
 import lombok.Builder;
@@ -16,17 +18,24 @@ public class ShortenedURLEntity {
 
 	private LocalDateTime expiredAt;
 
-	private boolean isDeleted;
+	private boolean disabled;
 
-	@Builder
-	public ShortenedURLEntity(Long id, String originURL, String shortenedURL, LocalDateTime expiredAt) {
-		this.id = id;
+	@Builder(access = PRIVATE)
+	private ShortenedURLEntity(String originURL, String shortenedURL, LocalDateTime expiredAt) {
 		this.originURL = originURL;
 		this.shortenedURL = shortenedURL;
 		this.expiredAt = expiredAt;
 	}
 
-	public void markDelete() {
-		this.isDeleted = true;
+	public static ShortenedURLEntity of(String originURL, String shortenedURL, LocalDateTime expiredAt) {
+		return ShortenedURLEntity.builder()
+			.originURL(originURL)
+			.shortenedURL(shortenedURL)
+			.expiredAt(expiredAt)
+			.build();
+	}
+
+	public void disable() {
+		this.disabled = true;
 	}
 }

@@ -54,11 +54,9 @@ public class ShortenURLService {
 		}
 		String generatedShortenedURL = generateShortenedURL();
 
-		ShortenedURLEntity shortenedURLEntity = ShortenedURLEntity.builder()
-			.originURL(req.originURL())
-			.shortenedURL(generatedShortenedURL)
-			.expiredAt(getExpirationTime(req.ttlMinutes()))
-			.build();
+		LocalDateTime expiredAt = getExpirationTime(req.ttlMinutes());
+		ShortenedURLEntity shortenedURLEntity = ShortenedURLEntity.of(req.originURL(), generatedShortenedURL,
+			expiredAt);
 		ShortenedURLEntity created = repository.save(shortenedURLEntity);
 
 		return ShortenedURLCreateResponse.from(created);

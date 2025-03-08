@@ -1,9 +1,13 @@
 package community.whatever.onembackendjava.service;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
+import community.whatever.onembackendjava.dto.req.ShortenedURLCreateRequest;
+import community.whatever.onembackendjava.dto.res.ShortenedURLCreateResponse;
+import community.whatever.onembackendjava.entity.ShortenedURLEntity;
 import community.whatever.onembackendjava.exception.BusinessExceptionCode;
 import community.whatever.onembackendjava.exception.BusinessLogicException;
 import community.whatever.onembackendjava.repository.BlockedDomainRepository;
@@ -29,28 +33,33 @@ public class ShortenURLService {
 	 * @throws BusinessLogicException 원본 URL을 찾을 수 없는 경우
 	 */
 	public String getOriginURL(String shortenedURL) {
-		String originURL = repository.findByShortenedURL(shortenedURL)
+		ShortenedURLEntity entity = repository.findByShortenedURL(shortenedURL)
+			.filter((se) -> se.getExpiredAt().isAfter(LocalDateTime.now()))
 			.orElseThrow(() -> BusinessLogicException.from(BusinessExceptionCode.ORIGIN_URL_NOT_FOUND));
 
-		return originURL;
+		return entity.getOriginURL();
 	}
 
 	/**
 	 * <p> 원본 URL로 단축 URL 생성</p>
 	 *
-	 * @param originURL 원본 URL
+	 * @param req ShortenedURLCreateRequest
 	 * @return 생성된 단축 URL
 	 * @throws BusinessLogicException 해당 URL 도메인이 블랙리스트에 있을 경우
 	 */
-	public String createShortenedURL(String originURL) {
-		if (checkDomainInBlackList(originURL)) {
+	public ShortenedURLCreateResponse createShortenedURL(ShortenedURLCreateRequest req) {
+		if (checkDomainInBlackList(req.originURL())) {
 			throw BusinessLogicException.withAdditionalInfo(BusinessExceptionCode.IS_BLOCKED_DOMAIN,
-				"originURL: %s".formatted(originURL));
+				"originURL: %s".formatted(req.originURL()));
 		}
 		String generatedShortenedURL = generateShortenedURL();
-		String shortenedURL = repository.save(originURL, generatedShortenedURL);
 
-		return shortenedURL;
+		LocalDateTime expiredAt = getExpirationTime(req.ttlMinutes());
+		ShortenedURLEntity shortenedURLEntity = ShortenedURLEntity.of(req.originURL(), generatedShortenedURL,
+			expiredAt);
+		ShortenedURLEntity created = repository.save(shortenedURLEntity);
+
+		return ShortenedURLCreateResponse.from(created);
 	}
 
 	/**
@@ -65,6 +74,10 @@ public class ShortenURLService {
 	private boolean checkDomainInBlackList(String originURL) {
 		String domain = URLUtils.extractDomainFromURL(originURL);
 		return blockedDomainRepository.exists(domain);
+	}
+
+	private LocalDateTime getExpirationTime(int ttlMinutes) {
+		return LocalDateTime.now().plusMinutes(ttlMinutes);
 	}
 
 }

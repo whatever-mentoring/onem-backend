@@ -3,7 +3,8 @@ POST http://localhost:8080/shorten-url
 Content-Type: application/json
 
 {
-  "originURL": "https://www.naver.com"
+  "originURL": "https://wwws.naver.com",
+  "ttlMinutes": 10
 }
 
 > {%

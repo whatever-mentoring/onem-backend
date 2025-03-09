@@ -18,7 +18,6 @@ public class UrlShortenService {
     private final AppEnvironment appEnvironment;
     private final RandomKeyGenerator randomKeyGenerator;
     
-    private static final int KEY_LENGTH = 6;
     private static final long ONE_HOUR = 60 * 60 * 1000;
     private final String envPrefix = appEnvironment.getPrefix();
 
@@ -26,7 +25,7 @@ public class UrlShortenService {
     public UrlShortenService(UrlMappingManager urlMappingManager, AppEnvironment appEnvironment) {
         this.urlMappingManager = urlMappingManager;
         this.appEnvironment = appEnvironment;
-        this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix(), KEY_LENGTH);
+        this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix());
     }
 
 

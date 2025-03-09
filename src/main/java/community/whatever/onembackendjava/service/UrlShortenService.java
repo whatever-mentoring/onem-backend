@@ -26,7 +26,15 @@ public class UrlShortenService {
 
     private static final int KEY_LENGTH = 6;
     private static final long ONE_HOUR = 60 * 60 * 1000;
-    private final String envPrefix = appEnvironment.getPrefix();
+
+    private String envPrefix;
+
+    private String getEnvPrefix() {
+        if (envPrefix == null) {
+            envPrefix = appEnvironment.getPrefix(); // 첫 호출 시에만 실행
+        }
+        return envPrefix;
+    }
 
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
@@ -103,7 +111,7 @@ public class UrlShortenService {
             String encoded = Base64.getUrlEncoder().encodeToString(hash);
             String randomPart = encoded.substring(0, KEY_LENGTH);
             
-            return String.format("%s-%s", envPrefix, randomPart);
+            return String.format("%s-%s", getEnvPrefix(), randomPart);
         } catch (NoSuchAlgorithmException e) {
             System.err.println("SHA-256 알고리즘을 사용할 수 없습니다: " + e.getMessage());
             throw new RuntimeException(e);

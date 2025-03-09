@@ -1,22 +1,22 @@
 package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.dto.CreateShortenUrlRequest;
 import community.whatever.onembackendjava.dto.CreateShortenUrlResponse;
 import community.whatever.onembackendjava.dto.SearchShortenUrlRequest;
 import community.whatever.onembackendjava.dto.SearchShortenUrlResponse;
 import community.whatever.onembackendjava.exception.UrlShortenException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -26,9 +26,18 @@ class UrlShortenServiceTest {
 
     @Mock
     private UrlMappingManager urlMappingManager;
+    
+    @Mock
+    private AppEnvironment appEnvironment;
 
     @InjectMocks
     private UrlShortenService urlShortenService;
+    
+    private final String TEST_PREFIX = "dev";
+    
+    private void setUpPrefixEnvironment() {
+        when(appEnvironment.getPrefix()).thenReturn(TEST_PREFIX);
+    }
 
     @Nested
     @DisplayName("URL 생성 테스트")
@@ -38,6 +47,7 @@ class UrlShortenServiceTest {
         @DisplayName("URL을 생성할 때 기본 TTL이 적용된다")
         void createShortenUrl_WithDefaultTTL_Success() {
             // given
+            setUpPrefixEnvironment();
             String originUrl = "https://example.com";
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, null);
 
@@ -56,6 +66,7 @@ class UrlShortenServiceTest {
         @DisplayName("사용자가 지정한 TTL을 사용한다")
         void createShortenUrl_WithCustomTTL_Success() {
             // given
+            setUpPrefixEnvironment();
             String originUrl = "https://example.com";
             Long customTTL = 30L; // 30분
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, customTTL);
@@ -75,6 +86,7 @@ class UrlShortenServiceTest {
         @DisplayName("중복 키가 생성된 경우 재시도한다")
         void createShortenUrl_DuplicateKey_RetrySuccess() {
             // given
+            setUpPrefixEnvironment();
             String originUrl = "https://example.com";
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, 5L);
 
@@ -95,12 +107,30 @@ class UrlShortenServiceTest {
     @Nested
     @DisplayName("URL 조회 테스트")
     class SearchShortenUrlTest {
+        
+        @Test
+        @DisplayName("잘못된 프리픽스로 URL을 조회하면 예외가 발생한다")
+        void searchShortenUrl_InvalidPrefix_ThrowsException() {
+            setUpPrefixEnvironment();
+            String invalidKey = "invalid-key";
+            SearchShortenUrlRequest request = new SearchShortenUrlRequest(invalidKey);
+            when(appEnvironment.name()).thenReturn("DEV");
+            
+
+            assertThrows(UrlShortenException.class, () -> {
+                urlShortenService.searchShortenUrl(request);
+            });
+            
+
+            verify(appEnvironment, atLeastOnce()).getPrefix();
+        }
 
         @Test
         @DisplayName("존재하는 URL을 조회할 수 있다")
         void searchShortenUrl_ExistingKey_Success() {
             // given
-            String key = "abc123";
+            setUpPrefixEnvironment();
+            String key = TEST_PREFIX + "-abc123";
             String url = "https://example.com";
             SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
 
@@ -117,7 +147,8 @@ class UrlShortenServiceTest {
         @DisplayName("만료된 URL은 조회할 수 없다")
         void searchShortenUrl_ExpiredUrl_ThrowsException() {
             // given
-            String key = "expired";
+            setUpPrefixEnvironment();
+            String key = TEST_PREFIX + "-expired";
             SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
 
             // 만료된 URL은 null 반환
@@ -133,12 +164,28 @@ class UrlShortenServiceTest {
     @Nested
     @DisplayName("리다이렉션 테스트")
     class RedirectTest {
+        
+        @Test
+        @DisplayName("잘못된 프리픽스로 URL을 조회하면 예외가 발생한다")
+        void getOriginalUrl_InvalidPrefix_ThrowsException() {
+
+            setUpPrefixEnvironment();
+            String invalidCode = "invalid-code";
+            when(appEnvironment.name()).thenReturn("DEV");
+            
+            assertThrows(UrlShortenException.class, () -> {
+                urlShortenService.getOriginalUrl(invalidCode);
+            });
+            
+            verify(appEnvironment, atLeastOnce()).getPrefix();
+        }
 
         @Test
         @DisplayName("유효한 코드로 원본 URL을 조회할 수 있다")
         void getOriginalUrl_ValidCode_Success() {
             // given
-            String code = "abc123";
+            setUpPrefixEnvironment();
+            String code = TEST_PREFIX + "-abc123";
             String url = "https://example.com";
 
             when(urlMappingManager.find(code)).thenReturn(url);
@@ -154,7 +201,8 @@ class UrlShortenServiceTest {
         @DisplayName("만료된 코드로 원본 URL을 조회하면 예외가 발생한다")
         void getOriginalUrl_ExpiredCode_ThrowsException() {
             // given
-            String code = "expired";
+            setUpPrefixEnvironment();
+            String code = TEST_PREFIX + "-expired";
 
             when(urlMappingManager.find(code)).thenReturn(null);
 

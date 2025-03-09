@@ -51,15 +51,16 @@ internal-core 팀은 전사 공통 util 서비스를 제공하고 있으며, 당
 3. create shorten-url key
 
    ```shell
-   curl -X POST --location "http://localhost:8080/shorten-url/create" \
-       -H "Content-Type: application/json" \
-       -d 'https://www.google.com'
+   curl -X POST --location "http://localhost:8080/shorten-url" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "originUrl" : "https://www.google.com"
+    }'
    ```
 
 4. search shorten-url by created key
 
     ```shell
-    curl -X POST --location "http://localhost:8080/shorten-url/search" \
-        -H "Content-Type: application/json" \
-        -d '4888'
+    curl -X GET --location "http://localhost:8080/shorten-url?key=4888333" \
+        -H "Accept: application/json"
     ```

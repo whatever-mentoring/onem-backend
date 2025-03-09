@@ -1,39 +1,62 @@
 package community.whatever.onembackendjava.api.service;
 
+import community.whatever.onembackendjava.api.dto.ShortenUrlDto;
 import community.whatever.onembackendjava.common.error.BusinessException;
 import community.whatever.onembackendjava.common.error.BusinessExceptionGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Slf4j
 @Service
 public class UrlShortenService {
 
+    private static final String UrlRegex = "https?://(?:www\\.)?[a-zA-Z0-9./]+";
+    private static final Pattern URL_PATTERN = Pattern.compile(UrlRegex);
+
     private final Map<String, String> shortenUrls = new HashMap<>();
 
-    public String shortenUrlSearch(String key){
-        if (!shortenUrls.containsKey(key)) {
-            throw BusinessExceptionGenerator.createBusinessException("DB001");
+    public ShortenUrlDto.Get.Response shortenUrlSearch(ShortenUrlDto.Get.Request param){
+        if (!shortenUrls.containsKey(param.getKey())) {
+            throw BusinessExceptionGenerator.createBusinessException("DB003");
         }
-        return shortenUrls.get(key);
+
+        return ShortenUrlDto.Get.Response.builder()
+                .originUrl(shortenUrls.get(param.getKey()))
+                .build();
     }
 
-    public String shortenUrlCreate(String originUrl){
-        //@todo url validation 필요
-        if (!StringUtils.hasText(originUrl)) {
+    public ShortenUrlDto.Create.Response shortenUrlCreate(ShortenUrlDto.Create.Request param){
+        if (validateOriginUrl(param.getOriginUrl())) {
             throw BusinessExceptionGenerator.createBusinessException("DB001");
         }
+
         Random random = new Random();
-        return Stream.generate(() -> String.valueOf(random.nextInt(10000000)))
-                .filter(key -> shortenUrls.putIfAbsent(key, originUrl) == null)
-                .findFirst()
-                //@Todo 키가 없을 경우 에러 생성되게 수정 필요
-                .orElseThrow();
+        String returnKey = String.valueOf(random.nextInt(10000000));
+
+        while (shortenUrls.containsKey(returnKey)) { // 이미 존재하는 키면 다시 생성
+            returnKey = String.valueOf(random.nextInt(10000000));
+        }
+        shortenUrls.put(returnKey, param.getOriginUrl()); // 새로운 키를 저장
+
+        return ShortenUrlDto.Create.Response.builder()
+                .key(returnKey)
+                .build();
     }
+
+    public static boolean isValidURL(String url) {
+        Matcher matcher = URL_PATTERN.matcher(url);
+        return matcher.matches();
+    }
+
+    private boolean validateOriginUrl(String originUrl) {
+        return !StringUtils.hasText(originUrl) || !isValidURL(originUrl);
+    }
+
+
 }

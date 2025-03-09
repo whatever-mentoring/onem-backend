@@ -103,7 +103,7 @@ public class UrlShortenService {
             String encoded = Base64.getUrlEncoder().encodeToString(hash);
             String randomPart = encoded.substring(0, KEY_LENGTH);
             
-            return envPrefix + "-" + randomPart;
+            return String.format("%s-%s", envPrefix, randomPart);
         } catch (NoSuchAlgorithmException e) {
             System.err.println("SHA-256 알고리즘을 사용할 수 없습니다: " + e.getMessage());
             throw new RuntimeException(e);

@@ -93,8 +93,6 @@ public class UrlShortenService {
     }
 
     private String generateRandomKey() {
-        String envPrefix = appEnvironment.getPrefix();
-
         long timestamp = Instant.now().toEpochMilli();
         long random = ThreadLocalRandom.current().nextLong();
         String combined = timestamp + ":" + random;

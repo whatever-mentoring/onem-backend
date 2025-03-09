@@ -22,7 +22,7 @@ services:
           cpus: "1.0"
           memory: "1GB"
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://my-app:8080/health" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://my-app:8080/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 5

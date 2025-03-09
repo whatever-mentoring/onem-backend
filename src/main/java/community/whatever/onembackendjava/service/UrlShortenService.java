@@ -29,6 +29,13 @@ public class UrlShortenService {
     }
 
 
+    public UrlShortenService(UrlMappingManager urlMappingManager, AppEnvironment appEnvironment) {
+        this.urlMappingManager = urlMappingManager;
+        this.appEnvironment = appEnvironment;
+        this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix());
+    }
+
+
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         validatePrefix(request.key());
         String url = urlMappingManager.find(request.key());

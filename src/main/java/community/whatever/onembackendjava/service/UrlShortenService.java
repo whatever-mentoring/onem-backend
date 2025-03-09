@@ -3,39 +3,30 @@ package community.whatever.onembackendjava.service;
 import community.whatever.onembackendjava.UrlMappingManager;
 import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
+import community.whatever.onembackendjava.domain.RandomKeyGenerator;
 import community.whatever.onembackendjava.dto.*;
 import community.whatever.onembackendjava.exception.UrlShortenException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
-import java.util.Base64;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
-@RequiredArgsConstructor
 public class UrlShortenService {
     private final UrlMappingManager urlMappingManager;
     private final AppEnvironment appEnvironment;
-
+    private final RandomKeyGenerator randomKeyGenerator;
+    
     private static final int KEY_LENGTH = 6;
     private static final long ONE_HOUR = 60 * 60 * 1000;
     private final String envPrefix = appEnvironment.getPrefix();
 
 
-    private String envPrefix;
-
-    private String getEnvPrefix() {
-        if (envPrefix == null) {
-            envPrefix = appEnvironment.getPrefix(); // 첫 호출 시에만 실행
-        }
-        return envPrefix;
+    public UrlShortenService(UrlMappingManager urlMappingManager, AppEnvironment appEnvironment) {
+        this.urlMappingManager = urlMappingManager;
+        this.appEnvironment = appEnvironment;
+        this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix(), KEY_LENGTH);
     }
 
 
@@ -102,22 +93,15 @@ public class UrlShortenService {
         }
     }
 
+    /**
+     * 랜덤 키를 생성합니다.
+     * 키 생성 로직은 RandomKeyGenerator 도메인 객체로 분리되었습니다.
+     * 이를 통해 단일 책임 원칙을 준수하고 테스트 용이성이 향상됩니다.
+     * 
+     * @return 생성된 랜덤 키
+     */
     private String generateRandomKey() {
-        long timestamp = Instant.now().toEpochMilli();
-        long random = ThreadLocalRandom.current().nextLong();
-        String combined = timestamp + ":" + random;
-
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(combined.getBytes(StandardCharsets.UTF_8));
-            String encoded = Base64.getUrlEncoder().encodeToString(hash);
-            String randomPart = encoded.substring(0, KEY_LENGTH);
-            
-            return String.format("%s-%s", getEnvPrefix(), randomPart);
-        } catch (NoSuchAlgorithmException e) {
-            System.err.println("SHA-256 알고리즘을 사용할 수 없습니다: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
+        return randomKeyGenerator.generate();
     }
     
     public String getOriginalUrl(String code) {

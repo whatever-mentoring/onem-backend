@@ -13,19 +13,20 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RandomKeyGenerator {
     
+    public static final int DEFAULT_KEY_LENGTH = 6;
+    
     private final String environmentPrefix;
-    private final int keyLength;
     
     /**
      * 환경 접두사와 키 길이를 지정하여 RandomKeyGenerator를 생성합니다.
      * 
      * @param environmentPrefix 환경별 접두사 (예: dev, prod)
-     * @param keyLength 생성할 랜덤 키의 길이
      */
-    public RandomKeyGenerator(String environmentPrefix, int keyLength) {
+    public RandomKeyGenerator(String environmentPrefix) {
         this.environmentPrefix = environmentPrefix;
-        this.keyLength = keyLength;
     }
+    
+
     
     /**
      * 현재 시간과 랜덤 값을 사용하여 새로운 랜덤 키를 생성합니다.
@@ -54,7 +55,7 @@ public class RandomKeyGenerator {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(combined.getBytes(StandardCharsets.UTF_8));
             String encoded = Base64.getUrlEncoder().encodeToString(hash);
-            String randomPart = encoded.substring(0, keyLength);
+            String randomPart = encoded.substring(0, DEFAULT_KEY_LENGTH);
             
             return String.format("%s-%s", environmentPrefix, randomPart);
         } catch (NoSuchAlgorithmException e) {

@@ -24,6 +24,8 @@ public class UrlShortenService {
 
     private static final int KEY_LENGTH = 6;
     private static final long ONE_HOUR = 60 * 60 * 1000;
+    private final String envPrefix = appEnvironment.getPrefix();
+
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         String url = urlMappingManager.find(request.key());

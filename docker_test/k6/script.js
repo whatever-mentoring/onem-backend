@@ -17,7 +17,7 @@ export const options = {
 
 
 export default function () {
-    let data = {originURL: "https://google.com"}
+    let data = {originURL: "https://google.com", "ttlMinutes": 100}
     let res = http.post(`http://${BASE_URL}/shorten-url`, JSON.stringify(data), {
         headers: {'Content-Type': 'application/json'},
     });

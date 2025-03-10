@@ -1,1 +1,42 @@
-spring.application.name=onem-backend
+spring:
+  application:
+    name: onem-backend
+
+  # Zipkin 트레이싱 설정
+  zipkin:
+    sender:
+      type: web
+    base-url: http://localhost:9411
+    service:
+      name: ${spring.application.name}
+
+# 액츄에이터 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,loggers
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+# 로깅 설정
+logging:
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%blue{%t}] %yellow{%C{1.}} : %msg%n%throwable'
+  level:
+    root: INFO
+    community.whatever.onembackendjava: DEBUG
+    community.whatever.onembackendjava.config.RequestLoggingFilter: DEBUG
+    org.springframework.web: INFO
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG

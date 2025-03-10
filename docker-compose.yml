@@ -1,0 +1,60 @@
+services:
+  # Zipkin - 분산 트레이싱
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - onem-network
+
+  # Prometheus - 메트릭 수집
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - onem-network
+    # Prometheus는 독립적으로 실행
+
+  # Grafana - 시각화 대시보드
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      # CORS 및 임베딩 허용 설정
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SECURITY_COOKIE_SAMESITE=none
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      # CORS 설정
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_LOG_LEVEL=debug
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - onem-network
+    depends_on:
+      - prometheus
+
+  # 애플리케이션 컨테이너 (옵션)
+  # onem-app:
+  #   build: .
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #   networks:
+  #     - onem-network
+  #   depends_on:
+  #     - zipkin
+
+networks:
+  onem-network:
+    driver: bridge
+
+volumes:
+  grafana-storage:

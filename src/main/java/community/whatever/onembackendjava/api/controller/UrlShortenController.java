@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class UrlShortenController {
     private final UrlShortenService urlShortenService;
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<ResultJson> shortenUrlSearch(@Valid ShortenUrlDto.Get.Request param) {
         log.info("param >> {}", param.toString());
         ShortenUrlDto.Get.Response result = urlShortenService.shortenUrlSearch(param);
@@ -26,7 +26,7 @@ public class UrlShortenController {
         return ResponseFormatter.ConvertResponse(result);
     }
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ResultJson> shortenUrlCreate(@RequestBody ShortenUrlDto.Create.Request param) {
         log.info("param >> {}", param.toString());
         ShortenUrlDto.Create.Response result = urlShortenService.shortenUrlCreate(param);

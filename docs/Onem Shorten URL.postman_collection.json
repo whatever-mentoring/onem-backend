@@ -1,0 +1,54 @@
+{
+	"info": {
+		"_postman_id": "d8ff1ac1-869c-4298-95d8-55a44c86f7fe",
+		"name": "Onem Shorten URL",
+		"description": "단축 url 서비스 제공.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "29589051",
+		"_collection_link": "https://onem22.postman.co/workspace/Onem-Workspace~b94a4d3d-8531-4111-b9db-58f0125385df/collection/29589051-d8ff1ac1-869c-4298-95d8-55a44c86f7fe?action=share&source=collection_link&creator=29589051"
+	},
+	"item": [
+		{
+			"name": "shorten-url",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/shorten-url?key",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"shorten-url"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Request Copy",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"originUrl\" : \"https://www.google.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "localhost:8080/shorten-url"
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,47 @@
+:snippets: build/generated-snippets
+
+= Onem-Url-Shorten
+:toc: left
+:toclevels: 4
+:sectlinks:
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+
+== link:/docs[돌아가기]
+
+== Url-Shorten
+
+=== Original Url 조회 - GET /shorten-url
+ 요청받은 값에 해당하는 Original Url을 반환한다.
+
+:get_original_url: url-shorten-controller-test/shorten-url-search
+
+.Http Request
+include::{snippets}/{get_original_url}/http-request.adoc[]
+
+.Http Response
+include::{snippets}/{get_original_url}/http-response.adoc[]
+
+.Query Parameter
+include::{snippets}/{get_original_url}/query-parameters.adoc[]
+
+.Response Fields
+include::{snippets}/{get_original_url}/response-fields.adoc[]
+
+=== 단축 Url 키 생성 - POST /shorten-url
+ 요청받은 값에 Short key를 생성해서 반환한다.
+
+:create_key: url-shorten-controller-test/shorten-url-create
+
+.Http Request
+include::{snippets}/{create_key}/http-request.adoc[]
+
+.Http Response
+include::{snippets}/{create_key}/http-response.adoc[]
+
+.Request Body
+include::{snippets}/{create_key}/request-body.adoc[]
+
+.Response Fields
+include::{snippets}/{create_key}/response-fields.adoc[]

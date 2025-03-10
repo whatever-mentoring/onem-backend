@@ -1,21 +1,19 @@
 package community.whatever.onembackendjava.api.dto;
 
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 public class ShortenUrlDto {
 
     public static class Get{
-        @Getter
-        @Setter
+        @Data
+        @NoArgsConstructor
         public static class Request{
             private String key;
 
         }
 
-        @Getter
+        @Data
         @Builder
         public static class Response{
             public String originUrl;
@@ -23,13 +21,14 @@ public class ShortenUrlDto {
     }
 
     public static class Create{
-        @Getter
+        @Data
+        @NoArgsConstructor
         public static class Request{
             private String originUrl;
 
         }
 
-        @Getter
+        @Data
         @Builder
         public static class Response{
             public String key;

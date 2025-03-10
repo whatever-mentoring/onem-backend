@@ -1,0 +1,57 @@
+:snippets: build/generated-snippets
+
+= Onem-Url-Shorten
+:toc: left
+:toclevels: 4
+:sectlinks:
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+
+ 단축 URL 서비스 내부 API 가이드 문서입니다.
+ API 정보 참고하시고, 관련 문의사항은 sunsun512 에게 접수 부탁드리겠습니다.
+
+
+= 안내
+
+[[overview-api-result]]
+== API 결과 구조
+JSON 형식의 공통된 응답구조를 사용한다.
+
+|===
+| Key | 형식 | 비고
+
+| `resultCode`
+| `String`
+| 결과 코드
+
+| `msg`
+| `String`
+| 결과 메시지
+
+| `data`
+| `Map`
+| 응답 데이터
+
+| `timeZone`
+| `TimeZone`
+| 서버의 타임존
+
+| `timeStamp`
+| `Long`
+| 서버의 타임스탬프
+
+| `language`
+| `String`
+| 응답의 언어셋
+
+|===
+
+
+= API 목록
+
+=== Url-Shorten
+==== link:/docs/url-shorten.html[View]
+List::
+* 단축 Url 키 생성 - POST /shorten-url
+* Original Url 조회 - GET /shorten-url

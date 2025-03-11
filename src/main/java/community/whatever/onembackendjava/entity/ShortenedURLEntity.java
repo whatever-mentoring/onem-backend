@@ -6,31 +6,35 @@ import java.time.LocalDateTime;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
+@NoArgsConstructor(access = PROTECTED)
 public class ShortenedURLEntity {
 
 	private Long id;
 
-	private String originURL;
+	private String originUrl;
 
-	private String shortenedURL;
+	private String shortenedUrl;
 
 	private LocalDateTime expiredAt;
 
 	private boolean disabled;
 
 	@Builder(access = PRIVATE)
-	private ShortenedURLEntity(String originURL, String shortenedURL, LocalDateTime expiredAt) {
-		this.originURL = originURL;
-		this.shortenedURL = shortenedURL;
+	private ShortenedURLEntity(String originUrl, String shortenedUrl, LocalDateTime expiredAt) {
+		this.originUrl = originUrl;
+		this.shortenedUrl = shortenedUrl;
 		this.expiredAt = expiredAt;
 	}
 
 	public static ShortenedURLEntity of(String originURL, String shortenedURL, LocalDateTime expiredAt) {
 		return ShortenedURLEntity.builder()
-			.originURL(originURL)
-			.shortenedURL(shortenedURL)
+			.originUrl(originURL)
+			.shortenedUrl(shortenedURL)
 			.expiredAt(expiredAt)
 			.build();
 	}

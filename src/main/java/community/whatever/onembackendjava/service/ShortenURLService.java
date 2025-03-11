@@ -51,7 +51,7 @@ public class ShortenURLService {
 			.filter((se) -> se.getExpiredAt().isAfter(LocalDateTime.now()))
 			.orElseThrow(() -> BusinessLogicException.from(BusinessExceptionCode.ORIGIN_URL_NOT_FOUND));
 
-		return entity.getOriginURL();
+		return entity.getOriginUrl();
 	}
 
 	/**

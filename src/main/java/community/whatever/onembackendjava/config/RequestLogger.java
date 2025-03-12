@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -58,15 +59,10 @@ public class RequestLogger {
         if (!queryParams.isEmpty()) {
             log.info("Query Parameters:");
             queryParams.forEach((key, values) -> {
-                if (values.length == 1) {
-                    log.info("  {} = {}", key, values[0]);
-                } else {
-                    StringJoiner valueJoiner = new StringJoiner(", ", "[", "]");
-                    for (String value : values) {
-                        valueJoiner.add(value);
-                    }
-                    log.info("  {} = {}", key, valueJoiner.toString());
-                }
+                String valueStr = (values.length == 1)
+                        ? values[0]
+                        : Arrays.toString(values);
+                log.info("  {} = {}", key, valueStr);
             });
         }
     }

@@ -1,6 +1,8 @@
 spring:
   application:
     name: onem-backend
+  profiles:
+    active: dev
 server:
   tomcat:
     mbeanregistry:
@@ -27,6 +29,21 @@ management:
     health:
       show-components: always
       show-details: always
+
+
+---
+spring.config.activate.on-profile: dev
+
+
+
+
+---
+spring.config.activate.on-profile: stg
+
+
+
+---
+spring.config.activate.on-profile: prd
 
 
 

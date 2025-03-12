@@ -14,7 +14,6 @@ import community.whatever.onembackendjava.exception.BusinessLogicException;
 import community.whatever.onembackendjava.repository.BlockedDomainRepository;
 import community.whatever.onembackendjava.repository.URLShortenRepository;
 import community.whatever.onembackendjava.utils.URLUtils;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,17 +26,8 @@ public class ShortenURLService {
 
 	private final AtomicLong atomicLong = new AtomicLong(0);
 
-	/**
-	 * spring.profiles.active` 값을 가져오며, {@link #init()}에서 수정됨
-	 */
-	@Value("${spring.profiles.active:default}")
+	@Value("${spring.profiles.active}")
 	private String envPrefix;
-
-	@PostConstruct
-	void init() {
-		int l = envPrefix.length();
-		this.envPrefix = (l >= 3 ? envPrefix.substring(0, 3) : envPrefix + "?".repeat(3 - l)) + '-';
-	}
 
 	/**
 	 * <P> 단축 URL로 원본 URL 조회</P>
@@ -82,7 +72,7 @@ public class ShortenURLService {
 	 * @return 단축 URL
 	 */
 	private String generateShortenedURL() {
-		return envPrefix + atomicLong.incrementAndGet();
+		return envPrefix + "-" + atomicLong.incrementAndGet();
 	}
 
 	private boolean checkDomainInBlackList(String originURL) {

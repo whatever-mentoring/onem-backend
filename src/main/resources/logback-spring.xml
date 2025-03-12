@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 콘솔 출력을 위한 appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 파일 출력을 위한 appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/onem-backend.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/onem-backend.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- HTTP 요청에 대한 appender -->
+    <appender name="HTTP_REQUEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/http-requests.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/http-requests.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- JSON 형식으로 로그 출력 -->
+        </encoder>
+    </appender>
+
+    <!-- HTTP 요청 로깅을 위한 logger -->
+    <logger name="community.whatever.onembackendjava.config.RequestLogger" level="INFO" additivity="false">
+        <appender-ref ref="HTTP_REQUEST_FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <!-- 쿼리 파라미터 로깅을 위한 logger -->
+    <logger name="org.springframework.web.servlet.DispatcherServlet" level="DEBUG" />
+
+    <!-- 기본 로거 설정 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

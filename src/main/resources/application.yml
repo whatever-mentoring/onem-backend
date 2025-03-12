@@ -37,6 +37,13 @@ logging:
   level:
     root: INFO
     community.whatever.onembackendjava: DEBUG
-    community.whatever.onembackendjava.config.RequestLoggingFilter: DEBUG
+    community.whatever.onembackendjava.config.RequestLogger: INFO
     org.springframework.web: INFO
     org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+  file:
+    name: logs/onem-backend.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 500MB

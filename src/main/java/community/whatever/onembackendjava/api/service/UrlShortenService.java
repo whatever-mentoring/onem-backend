@@ -1,21 +1,26 @@
 package community.whatever.onembackendjava.api.service;
 
+import community.whatever.onembackendjava.api.domain.BlockedDomainInterface;
 import community.whatever.onembackendjava.api.dto.ShortenUrlDto;
-import community.whatever.onembackendjava.common.error.BusinessException;
 import community.whatever.onembackendjava.common.error.BusinessExceptionGenerator;
+import community.whatever.onembackendjava.common.error.model.ErrorCode;
+import community.whatever.onembackendjava.common.util.BlackListService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UrlShortenService {
 
+    private final BlockedDomainInterface blockedDomainInterface;
     private static final String UrlRegex = "https?://(?:www\\.)?[a-zA-Z0-9./]+";
     private static final Pattern URL_PATTERN = Pattern.compile(UrlRegex);
 
@@ -23,7 +28,7 @@ public class UrlShortenService {
 
     public ShortenUrlDto.Get.Response shortenUrlSearch(ShortenUrlDto.Get.Request param){
         if (!shortenUrls.containsKey(param.getKey())) {
-            throw BusinessExceptionGenerator.createBusinessException("DB003");
+            throw BusinessExceptionGenerator.createBusinessException(ErrorCode.DB003);
         }
 
         return ShortenUrlDto.Get.Response.builder()
@@ -33,7 +38,10 @@ public class UrlShortenService {
 
     public ShortenUrlDto.Create.Response shortenUrlCreate(ShortenUrlDto.Create.Request param){
         if (validateOriginUrl(param.getOriginUrl())) {
-            throw BusinessExceptionGenerator.createBusinessException("DB001");
+            throw BusinessExceptionGenerator.createBusinessException(ErrorCode.DB001);
+        }
+        if(blockedDomainInterface.isBlocked(param.getOriginUrl())){
+            throw BusinessExceptionGenerator.createBusinessException(ErrorCode.DB004);
         }
 
         Random random = new Random();

@@ -16,6 +16,10 @@ public class BusinessExceptionGenerator {
         this.restControllerAdvice = restControllerAdvice;
     }
 
+    public static BusinessException createBusinessException(ErrorCode errorCode) {
+        return new BusinessException(errorCode.getErrorCode(), errorCode.getMessage());
+    }
+
     public static BusinessException createBusinessException(String errorCode) {
         ErrorCode enumError = ErrorCode.valueOf(errorCode);
         return new BusinessException(enumError.getErrorCode(), enumError.getMessage());

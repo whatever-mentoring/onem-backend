@@ -94,16 +94,15 @@ public class RequestLogger {
      * 클라이언트 IP 주소 추출
      */
     private String getClientIp(HttpServletRequest request) {
-        String clientIp = request.getHeader("X-Forwarded-For");
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            clientIp = request.getHeader("Proxy-Client-IP");
-        }
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            clientIp = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            clientIp = request.getRemoteAddr();
-        }
-        return clientIp;
+        String[] headerNames = {"X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP"};
+        return Arrays.stream(headerNames)
+                .map(request::getHeader)
+                .filter(this::isValidIp)
+                .findFirst()
+                .orElse(request.getRemoteAddr());
+    }
+
+    private boolean isValidIp(String ip) {
+        return ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip);
     }
 }

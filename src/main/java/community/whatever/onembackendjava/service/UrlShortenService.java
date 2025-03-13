@@ -17,10 +17,8 @@ public class UrlShortenService {
     private final UrlMappingManager urlMappingManager;
     private final AppEnvironment appEnvironment;
     private final RandomKeyGenerator randomKeyGenerator;
-    
-    private static final long ONE_HOUR = 60 * 60 * 1000;
-    private final String envPrefix = appEnvironment.getPrefix();
 
+    private static final long ONE_HOUR = 60 * 60 * 1000;
 
     public UrlShortenService(UrlMappingManager urlMappingManager, AppEnvironment appEnvironment) {
         this.urlMappingManager = urlMappingManager;

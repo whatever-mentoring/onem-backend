@@ -61,7 +61,10 @@ public class ShortenedUrlJdbcRepository implements ShortenedUrlRepository {
 			.paramSource(shortenedURLEntity)
 			.update(keyHolder);
 
-		shortenedURLEntity.setId(keyHolder.getKeyAs(long.class));
+		Long id = (Long)keyHolder.getKeys().get("ID");
+		assert (id != null);
+
+		shortenedURLEntity.setId(id);
 		return shortenedURLEntity;
 	}
 

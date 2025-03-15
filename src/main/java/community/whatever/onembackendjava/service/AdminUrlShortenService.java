@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminUrlShortenService {
 
-    private final DomainBlockingManager urlMappingManager;
+    private final DomainBlockingManager domainBlockingManager;
     private final ShortenUrlDao shortenUrlDao;
 
     public ShortenUrlsMapResponse getValidShortenUrls() {
@@ -71,16 +71,16 @@ public class AdminUrlShortenService {
     }
 
     public String blockDomain(BlockDomainRequest request) {
-        urlMappingManager.blockDomain(request.domain());
+        domainBlockingManager.blockDomain(request.domain());
         return AdminConstants.DOMAIN_BLOCK_SUCCESS;
     }
 
     public String unblockDomain(BlockDomainRequest request) {
-        boolean removed = urlMappingManager.unblockDomain(request.domain());
+        boolean removed = domainBlockingManager.unblockDomain(request.domain());
         return removed ? AdminConstants.DOMAIN_UNBLOCK_SUCCESS : AdminConstants.DOMAIN_NOT_FOUND;
     }
 
     public BlockedDomainsResponse getBlockedDomains() {
-        return new BlockedDomainsResponse(urlMappingManager.getBlockedDomains());
+        return new BlockedDomainsResponse(domainBlockingManager.getBlockedDomains());
     }
 }

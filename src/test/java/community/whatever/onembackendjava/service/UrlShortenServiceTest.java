@@ -1,12 +1,13 @@
 package community.whatever.onembackendjava.service;
 
-import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.DomainBlockingManager;
+import community.whatever.onembackendjava.dao.ShortenUrlDao;
 import community.whatever.onembackendjava.constant.AppEnvironment;
-import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.dto.CreateShortenUrlRequest;
 import community.whatever.onembackendjava.dto.CreateShortenUrlResponse;
 import community.whatever.onembackendjava.dto.SearchShortenUrlRequest;
 import community.whatever.onembackendjava.dto.SearchShortenUrlResponse;
+import community.whatever.onembackendjava.entity.ShortenUrl;
 import community.whatever.onembackendjava.exception.UrlShortenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,10 +26,13 @@ import static org.mockito.Mockito.*;
 class UrlShortenServiceTest {
 
     @Mock
-    private UrlMappingManager urlMappingManager;
+    private DomainBlockingManager urlMappingManager;
     
     @Mock
     private AppEnvironment appEnvironment;
+    
+    @Mock
+    private ShortenUrlDao shortenUrlDao;
 
     private UrlShortenService urlShortenService;
     
@@ -36,7 +41,7 @@ class UrlShortenServiceTest {
     @BeforeEach
     void setUp() {
         when(appEnvironment.getPrefix()).thenReturn(TEST_PREFIX);
-        urlShortenService = new UrlShortenService(urlMappingManager, appEnvironment);
+        urlShortenService = new UrlShortenService(urlMappingManager, appEnvironment, shortenUrlDao);
     }
 
     @Nested
@@ -50,15 +55,18 @@ class UrlShortenServiceTest {
             String originUrl = "https://example.com";
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, null);
 
-            // URL 생성 성공 시뮬레이션
-            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), anyLong())).thenReturn(true);
+            // DB에 URL이 존재하지 않음을 시뮬레이션
+            when(shortenUrlDao.findByShortKey(anyString())).thenReturn(Optional.empty());
+            
+            // DAO를 통한 저장 성공 시뮬레이션
+            when(shortenUrlDao.save(any(ShortenUrl.class))).thenReturn(new ShortenUrl());
 
             // when
             CreateShortenUrlResponse response = urlShortenService.createShortenUrl(request);
 
             // then
             assertNotNull(response);
-            verify(urlMappingManager).putIfAbsent(anyString(), eq(originUrl), eq(UrlConstants.DEFAULT_TTL_MINUTES)); 
+            verify(shortenUrlDao).save(any(ShortenUrl.class));
         }
 
         @Test
@@ -69,15 +77,18 @@ class UrlShortenServiceTest {
             Long customTTL = 30L; // 30분
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, customTTL);
 
-            // URL 생성 성공 시뮬레이션
-            when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), anyLong())).thenReturn(true);
+            // DB에 URL이 존재하지 않음을 시뮬레이션
+            when(shortenUrlDao.findByShortKey(anyString())).thenReturn(Optional.empty());
+            
+            // DAO를 통한 저장 성공 시뮬레이션
+            when(shortenUrlDao.save(any(ShortenUrl.class))).thenReturn(new ShortenUrl());
 
             // when
             CreateShortenUrlResponse response = urlShortenService.createShortenUrl(request);
 
             // then
             assertNotNull(response);
-            verify(urlMappingManager).putIfAbsent(anyString(), eq(originUrl), eq(customTTL));
+            verify(shortenUrlDao).save(any(ShortenUrl.class));
         }
 
         @Test
@@ -87,17 +98,26 @@ class UrlShortenServiceTest {
             String originUrl = "https://example.com";
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, 5L);
 
-            // 첫 시도는 실패, 두 번째 시도는 성공 시뮬레이션
+            // 첫 번째 키는 이미 존재, 두 번째 키는 존재하지 않음을 시뮬레이션
+            when(shortenUrlDao.findByShortKey(anyString()))
+                    .thenReturn(Optional.of(new ShortenUrl()))
+                    .thenReturn(Optional.empty());
+            
+            // URL 매핑 매니저를 통한 저장 시뮬레이션 (첫 번째 시도는 DAO에서 이미 존재함을 확인하고 매핑 매니저로 넘어감)
             when(urlMappingManager.putIfAbsent(anyString(), eq(originUrl), eq(5L)))
-                    .thenReturn(false)
                     .thenReturn(true);
+                    
+            // DAO를 통한 저장 성공 시뮬레이션 (두 번째 시도에서 사용)
+            when(shortenUrlDao.save(any(ShortenUrl.class))).thenReturn(new ShortenUrl());
 
             // when
             CreateShortenUrlResponse response = urlShortenService.createShortenUrl(request);
 
             // then
             assertNotNull(response);
-            verify(urlMappingManager, times(2)).putIfAbsent(anyString(), eq(originUrl), eq(5L));
+            verify(shortenUrlDao, times(2)).findByShortKey(anyString());
+            verify(urlMappingManager).putIfAbsent(anyString(), eq(originUrl), eq(5L));
+            verify(shortenUrlDao).save(any(ShortenUrl.class));
         }
     }
 
@@ -112,23 +132,44 @@ class UrlShortenServiceTest {
             SearchShortenUrlRequest request = new SearchShortenUrlRequest(invalidKey);
             when(appEnvironment.name()).thenReturn("DEV");
             
-
             assertThrows(UrlShortenException.class, () -> {
                 urlShortenService.searchShortenUrl(request);
             });
             
-
             verify(appEnvironment, atLeastOnce()).getPrefix();
         }
 
         @Test
-        @DisplayName("존재하는 URL을 조회할 수 있다")
-        void searchShortenUrl_ExistingKey_Success() {
+        @DisplayName("존재하는 URL을 DB에서 조회할 수 있다")
+        void searchShortenUrl_ExistingKeyInDb_Success() {
             // given
             String key = TEST_PREFIX + "-abc123";
             String url = "https://example.com";
             SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
 
+            ShortenUrl shortenUrl = ShortenUrl.builder()
+                    .shortKey(key)
+                    .originalUrl(url)
+                    .build();
+
+            when(shortenUrlDao.findByShortKey(key)).thenReturn(Optional.of(shortenUrl));
+
+            // when
+            SearchShortenUrlResponse response = urlShortenService.searchShortenUrl(request);
+
+            // then
+            assertEquals(url, response.originUrl());
+        }
+        
+        @Test
+        @DisplayName("존재하는 URL을 매핑 매니저에서 조회할 수 있다")
+        void searchShortenUrl_ExistingKeyInManager_Success() {
+            // given
+            String key = TEST_PREFIX + "-abc123";
+            String url = "https://example.com";
+            SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
+
+            when(shortenUrlDao.findByShortKey(key)).thenReturn(Optional.empty());
             when(urlMappingManager.find(key)).thenReturn(url);
 
             // when
@@ -145,6 +186,9 @@ class UrlShortenServiceTest {
             String key = TEST_PREFIX + "-expired";
             SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
 
+            // DB에 URL이 존재하지 않음을 시뮬레이션
+            when(shortenUrlDao.findByShortKey(key)).thenReturn(Optional.empty());
+            
             // 만료된 URL은 null 반환
             when(urlMappingManager.find(key)).thenReturn(null);
 
@@ -162,7 +206,6 @@ class UrlShortenServiceTest {
         @Test
         @DisplayName("잘못된 프리픽스로 URL을 조회하면 예외가 발생한다")
         void getOriginalUrl_InvalidPrefix_ThrowsException() {
-
             String invalidCode = "invalid-code";
             when(appEnvironment.name()).thenReturn("DEV");
             
@@ -174,12 +217,34 @@ class UrlShortenServiceTest {
         }
 
         @Test
-        @DisplayName("유효한 코드로 원본 URL을 조회할 수 있다")
-        void getOriginalUrl_ValidCode_Success() {
+        @DisplayName("유효한 코드로 DB에서 원본 URL을 조회할 수 있다")
+        void getOriginalUrl_ValidCodeInDb_Success() {
             // given
             String code = TEST_PREFIX + "-abc123";
             String url = "https://example.com";
 
+            ShortenUrl shortenUrl = ShortenUrl.builder()
+                    .shortKey(code)
+                    .originalUrl(url)
+                    .build();
+
+            when(shortenUrlDao.findByShortKey(code)).thenReturn(Optional.of(shortenUrl));
+
+            // when
+            String originalUrl = urlShortenService.getOriginalUrl(code);
+
+            // then
+            assertEquals(url, originalUrl);
+        }
+        
+        @Test
+        @DisplayName("유효한 코드로 매핑 매니저에서 원본 URL을 조회할 수 있다")
+        void getOriginalUrl_ValidCodeInManager_Success() {
+            // given
+            String code = TEST_PREFIX + "-abc123";
+            String url = "https://example.com";
+
+            when(shortenUrlDao.findByShortKey(code)).thenReturn(Optional.empty());
             when(urlMappingManager.find(code)).thenReturn(url);
 
             // when
@@ -195,27 +260,13 @@ class UrlShortenServiceTest {
             // given
             String code = TEST_PREFIX + "-expired";
 
+            when(shortenUrlDao.findByShortKey(code)).thenReturn(Optional.empty());
             when(urlMappingManager.find(code)).thenReturn(null);
 
             // when & then
             assertThrows(UrlShortenException.class, () -> {
                 urlShortenService.getOriginalUrl(code);
             });
-        }
-    }
-
-    @Nested
-    @DisplayName("스케줄링 테스트")
-    class SchedulingTest {
-
-        @Test
-        @DisplayName("cleanupExpiredUrls 메서드는 UrlMappingManager를 호출한다")
-        void cleanupExpiredUrls_CallsManager() {
-            // when
-            urlShortenService.cleanupExpiredUrls();
-
-            // then
-            verify(urlMappingManager).cleanExpiredUrls();
         }
     }
 }

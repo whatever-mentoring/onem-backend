@@ -12,3 +12,15 @@ CREATE TABLE IF NOT EXISTS shorten_urls (
 -- 인덱스 생성
 CREATE INDEX IF NOT EXISTS idx_short_key ON shorten_urls (short_key);
 CREATE INDEX IF NOT EXISTS idx_expiry_time ON shorten_urls (expiry_time);
+
+-- 차단된 도메인 테이블 생성
+CREATE TABLE IF NOT EXISTS blocked_domains (
+    id SERIAL PRIMARY KEY,
+    domain VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    
+    CONSTRAINT uq_domain UNIQUE (domain)
+);
+
+-- 인덱스 생성
+CREATE INDEX IF NOT EXISTS idx_domain ON blocked_domains (domain);

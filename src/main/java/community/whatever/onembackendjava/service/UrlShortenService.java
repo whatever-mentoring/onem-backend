@@ -1,39 +1,53 @@
 package community.whatever.onembackendjava.service;
 
-import community.whatever.onembackendjava.UrlMappingManager;
+import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
+import community.whatever.onembackendjava.dao.ShortenUrlDao;
 import community.whatever.onembackendjava.domain.RandomKeyGenerator;
 import community.whatever.onembackendjava.dto.*;
+import community.whatever.onembackendjava.entity.ShortenUrl;
 import community.whatever.onembackendjava.exception.UrlShortenException;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class UrlShortenService {
-    private final UrlMappingManager urlMappingManager;
+    private final DomainBlockingManager urlMappingManager;
     private final AppEnvironment appEnvironment;
     private final RandomKeyGenerator randomKeyGenerator;
+    private final ShortenUrlDao shortenUrlDao;
 
     private static final long ONE_HOUR = 60 * 60 * 1000;
 
-    public UrlShortenService(UrlMappingManager urlMappingManager, AppEnvironment appEnvironment) {
+    public UrlShortenService(DomainBlockingManager urlMappingManager, AppEnvironment appEnvironment, ShortenUrlDao shortenUrlDao) {
         this.urlMappingManager = urlMappingManager;
         this.appEnvironment = appEnvironment;
         this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix());
+        this.shortenUrlDao = shortenUrlDao;
     }
 
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         validatePrefix(request.key());
-        String url = urlMappingManager.find(request.key());
-        if (url == null) {
+
+        Optional<ShortenUrl> shortenUrlOpt = shortenUrlDao.findByShortKey(request.key());
+        if (shortenUrlOpt.isEmpty()) {
             throw UrlShortenException.notFound(request.key());
         }
-        return new SearchShortenUrlResponse(url);
+
+        ShortenUrl shortenUrl = shortenUrlOpt.get();
+        if (Instant.now().isAfter(shortenUrl.getExpiryTime())) {
+            throw UrlShortenException.invalidUrl("%s is expired".formatted(request.key()));
+        }
+
+        return new SearchShortenUrlResponse(shortenUrl.getOriginalUrl());
     }
 
     public CreateShortenUrlResponse createShortenUrl(CreateShortenUrlRequest request) {
@@ -41,7 +55,7 @@ public class UrlShortenService {
         if (!originUrl.startsWith("http://") && !originUrl.startsWith("https://")) {
             originUrl = "https://" + originUrl;
         }
-        
+
         validateUrl(originUrl);
 
         URI uri = getUri(originUrl);
@@ -57,7 +71,24 @@ public class UrlShortenService {
         boolean success;
         do {
             randomKey = generateRandomKey();
-            success = urlMappingManager.putIfAbsent(randomKey, originUrl, ttlMinutes);
+
+            // DAO를 통해 키 중복 확인 및 저장
+            Optional<ShortenUrl> existingUrl = shortenUrlDao.findByShortKey(randomKey);
+            if (existingUrl.isEmpty()) {
+                // 새로운 단축 URL 저장
+                ShortenUrl shortenUrl = ShortenUrl.builder()
+                        .shortKey(randomKey)
+                        .originalUrl(originUrl)
+                        .createdAt(Instant.now())
+                        .expiryTime(Instant.now().plusSeconds(ttlMinutes * 60))
+                        .build();
+
+                shortenUrlDao.save(shortenUrl);
+                success = true;
+            } else {
+                success = false;
+            }
+
         } while (!success);
 
         return new CreateShortenUrlResponse(randomKey);
@@ -94,31 +125,36 @@ public class UrlShortenService {
      * 랜덤 키를 생성합니다.
      * 키 생성 로직은 RandomKeyGenerator 도메인 객체로 분리되었습니다.
      * 이를 통해 단일 책임 원칙을 준수하고 테스트 용이성이 향상됩니다.
-     * 
+     *
      * @return 생성된 랜덤 키
      */
     private String generateRandomKey() {
         return randomKeyGenerator.generate();
     }
-    
+
     public String getOriginalUrl(String code) {
         validatePrefix(code);
-        
-        String url = urlMappingManager.find(code);
-        if (url == null) {
+
+        // DAO를 통해 단축 URL 조회
+        Optional<ShortenUrl> shortenUrlOpt = shortenUrlDao.findByShortKey(code);
+        if (shortenUrlOpt.isPresent()) {
+            ShortenUrl shortenUrl = shortenUrlOpt.get();
+
+            // 만료 시간 체크
+            if (Instant.now().isAfter(shortenUrl.getExpiryTime())) {
+                shortenUrlDao.deleteByShortKey(code);
+                throw UrlShortenException.notFound(code);
+            }
+
+            return shortenUrl.getOriginalUrl();
+        } else {
             throw UrlShortenException.notFound(code);
         }
-        return url;
     }
 
     private void validatePrefix(String code) {
         if (code == null || code.length() < 3 || !code.startsWith(appEnvironment.getPrefix())) {
             throw UrlShortenException.invalidUrl("적합하지 않은 환경입니다 : " + appEnvironment.name());
         }
-    }
-    
-    @Scheduled(fixedRate = ONE_HOUR) 
-    public void cleanupExpiredUrls() {
-        urlMappingManager.cleanExpiredUrls();
     }
 }

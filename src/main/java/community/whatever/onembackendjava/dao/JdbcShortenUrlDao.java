@@ -56,7 +56,14 @@ public class JdbcShortenUrlDao implements ShortenUrlDao {
             return ps;
         }, keyHolder);
 
-        long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
+        Number key = null;
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+            key = (Number) keyHolder.getKeys().get("id");
+        } else {
+            key = keyHolder.getKey();
+        }
+        
+        long id = Objects.requireNonNull(key).longValue();
         shortenUrl.setId(id);
         return shortenUrl;
     }

@@ -11,7 +11,7 @@ public record ShortenedURLCreateResponse(
 	LocalDateTime expiredAt
 ) {
 	public static ShortenedURLCreateResponse from(ShortenedURLEntity entity) {
-		return new ShortenedURLCreateResponse(entity.getId(), entity.getOriginURL(), entity.getShortenedURL(),
+		return new ShortenedURLCreateResponse(entity.getId(), entity.getOriginUrl(), entity.getShortenedUrl(),
 			entity.getExpiredAt());
 	}
 }

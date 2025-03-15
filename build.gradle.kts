@@ -22,8 +22,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    //db
+    runtimeOnly("com.h2database:h2") // local
+    runtimeOnly("org.postgresql:postgresql") // stage, prod
+
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
 
     //Observability
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -37,6 +44,9 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok")
     //swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+
+    testImplementation("net.datafaker:datafaker:2.4.2");
+
 }
 
 tasks.withType<Test> {

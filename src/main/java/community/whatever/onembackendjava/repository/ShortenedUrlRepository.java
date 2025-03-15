@@ -4,7 +4,10 @@ import java.util.Optional;
 
 import community.whatever.onembackendjava.entity.ShortenedURLEntity;
 
-public interface URLShortenRepository {
+public interface ShortenedUrlRepository {
+
+	Optional<ShortenedURLEntity> findById(Long id);
+
 	/**
 	 * <p> 단축된 URL로 조회</p>
 	 *
@@ -20,5 +23,7 @@ public interface URLShortenRepository {
 	 * @return 저장된 단축 URL entity
 	 */
 	ShortenedURLEntity save(ShortenedURLEntity shortenedURLEntity);
+
+	long count();
 
 }

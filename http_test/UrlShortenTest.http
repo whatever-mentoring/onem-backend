@@ -8,8 +8,8 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("shortenedURL", response.body.shortenedURL);
+    client.global.set("shortenedUrl", response.body.shortenedUrl);
 %}
 
 ### 원본 URL 조회
-GET http://localhost:8080/shorten-url/{{shortenedURL}}
+GET http://localhost:8080/shorten-url/{{shortenedUrl}}

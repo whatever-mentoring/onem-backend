@@ -15,6 +15,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 개발 환경에서만 응답/요청 로깅으로 사용
+ */
 @Profile("dev")
 @Component
 @Slf4j

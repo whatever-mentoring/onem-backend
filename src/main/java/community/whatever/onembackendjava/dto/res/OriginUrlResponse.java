@@ -1,6 +1,6 @@
 package community.whatever.onembackendjava.dto.res;
 
-public record OriginURLResponse(
-	String originURL
+public record OriginUrlResponse(
+	String originUrl
 ) {
 }

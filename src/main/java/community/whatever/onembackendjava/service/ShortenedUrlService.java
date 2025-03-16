@@ -37,7 +37,7 @@ public class ShortenedUrlService {
 	 * @throws BusinessLogicException 원본 Url을 찾을 수 없는 경우
 	 */
 	public String getOriginUrl(String shortenedUrl) {
-		ShortenedUrlEntity entity = repository.findByShortenedUrl(shortenedUrl)
+		ShortenedUrlEntity entity = repository.findByShortenedURL(shortenedUrl)
 			.filter((se) -> se.getExpiredAt().isAfter(LocalDateTime.now()))
 			.orElseThrow(() -> BusinessLogicException.from(BusinessExceptionCode.ORIGIN_URL_NOT_FOUND));
 
@@ -77,7 +77,7 @@ public class ShortenedUrlService {
 
 	private boolean checkDomainInBlackList(String originUrl) {
 		String domain = UrlUtils.extractDomainFromUrl(originUrl);
-		return blockedDomainRepository.exists(domain);
+		return blockedDomainRepository.existsByBlockedDomainSuffix(domain);
 	}
 
 	private LocalDateTime getExpirationTime(int ttlMinutes) {

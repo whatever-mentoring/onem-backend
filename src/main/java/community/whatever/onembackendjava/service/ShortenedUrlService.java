@@ -77,7 +77,7 @@ public class ShortenedUrlService {
 
 	private boolean checkDomainInBlackList(String originUrl) {
 		String domain = UrlUtils.extractDomainFromUrl(originUrl);
-		return blockedDomainRepository.exists(domain);
+		return blockedDomainRepository.existsByBlockedDomainSuffix(domain);
 	}
 
 	private LocalDateTime getExpirationTime(int ttlMinutes) {

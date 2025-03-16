@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Profile("dev")
 @Component
 @Slf4j
-public class RequestLoggingFilter extends OncePerRequestFilter {
+public class DevRequestLoggingFilter extends OncePerRequestFilter {
 
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {

@@ -1,4 +1,4 @@
-package community.whatever.onembackendjava.dao;
+package community.whatever.onembackendjava.repository;
 
 import community.whatever.onembackendjava.entity.BlockedDomain;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +11,12 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-
+/**
+ * BlockedDomainRepository 인터페이스의 JDBC 구현체
+ */
 @Repository
 @RequiredArgsConstructor
 public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
@@ -37,6 +41,14 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
             return ps;
         }, keyHolder);
         
+        if (rows > 0 && keyHolder.getKeys() != null) {
+            if (keyHolder.getKeys().containsKey("id")) {
+                blockedDomain.setId(((Number) keyHolder.getKeys().get("id")).longValue());
+            } else if (keyHolder.getKey() != null) {
+                blockedDomain.setId(keyHolder.getKey().longValue());
+            }
+        }
+        
         return rows > 0;
     }
     
@@ -48,7 +60,14 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
     }
     
     @Override
-    public List<BlockedDomain> findAll() {
+    public Set<String> findAll() {
+        return findAllDomains().stream()
+                .map(BlockedDomain::getDomain)
+                .collect(Collectors.toSet());
+    }
+    
+    @Override
+    public List<BlockedDomain> findAllDomains() {
         String sql = "SELECT * FROM blocked_domains";
         return jdbcTemplate.query(sql, rowMapper);
     }

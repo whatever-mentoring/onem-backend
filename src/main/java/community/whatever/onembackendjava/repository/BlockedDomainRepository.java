@@ -1,33 +1,50 @@
 package community.whatever.onembackendjava.repository;
 
 import community.whatever.onembackendjava.entity.BlockedDomain;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-@Repository
-@RequiredArgsConstructor
-public class BlockedDomainRepository {
-
-    private final community.whatever.onembackendjava.dao.BlockedDomainRepository blockedDomainDao;
+/**
+ * 차단된 도메인에 대한 저장소 인터페이스
+ */
+public interface BlockedDomainRepository {
     
-    public boolean save(BlockedDomain blockedDomain) {
-        return blockedDomainDao.save(blockedDomain);
-    }
+    /**
+     * 새로운 차단 도메인 정보를 저장합니다.
+     *
+     * @param blockedDomain 저장할 차단 도메인 엔티티
+     * @return 저장 성공 여부
+     */
+    boolean save(BlockedDomain blockedDomain);
     
-    public boolean delete(String domain) {
-        return blockedDomainDao.delete(domain);
-    }
+    /**
+     * 도메인 차단 정보를 삭제합니다.
+     *
+     * @param domain 삭제할 도메인
+     * @return 삭제 성공 여부
+     */
+    boolean delete(String domain);
     
-    public Set<String> findAll() {
-        return blockedDomainDao.findAll().stream()
-                .map(BlockedDomain::getDomain)
-                .collect(Collectors.toSet());
-    }
+    /**
+     * 모든 차단된 도메인 정보를 조회합니다.
+     *
+     * @return 차단된 도메인 문자열 집합
+     */
+    Set<String> findAll();
     
-    public boolean exists(String domain) {
-        return blockedDomainDao.exists(domain);
-    }
+    /**
+     * 모든 차단된 도메인 엔티티를 조회합니다.
+     *
+     * @return 차단된 도메인 엔티티 목록
+     */
+    List<BlockedDomain> findAllDomains();
+    
+    /**
+     * 특정 도메인이 차단되었는지 확인합니다.
+     *
+     * @param domain 확인할 도메인
+     * @return 차단 여부
+     */
+    boolean exists(String domain);
 }

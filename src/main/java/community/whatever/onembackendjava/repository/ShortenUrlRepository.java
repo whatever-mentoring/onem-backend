@@ -1,4 +1,4 @@
-package community.whatever.onembackendjava.dao;
+package community.whatever.onembackendjava.repository;
 
 import community.whatever.onembackendjava.entity.ShortenUrl;
 
@@ -40,11 +40,4 @@ public interface ShortenUrlRepository {
      * @return 삭제된 행의 수
      */
     int deleteByShortKey(String shortKey);
-    
-    /**
-     * 만료된 단축 URL 정보를 조회합니다.
-     *
-     * @return 만료된 단축 URL 엔티티 목록
-     */
-    List<ShortenUrl> findExpired();
 }

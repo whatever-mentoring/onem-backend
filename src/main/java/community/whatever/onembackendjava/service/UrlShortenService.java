@@ -3,7 +3,7 @@ package community.whatever.onembackendjava.service;
 import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
-import community.whatever.onembackendjava.dao.ShortenUrlRepository;
+import community.whatever.onembackendjava.repository.ShortenUrlRepository;
 import community.whatever.onembackendjava.domain.RandomKeyGenerator;
 import community.whatever.onembackendjava.dto.*;
 import community.whatever.onembackendjava.entity.ShortenUrl;
@@ -22,7 +22,7 @@ public class UrlShortenService {
     private final DomainBlockingManager urlMappingManager;
     private final AppEnvironment appEnvironment;
     private final RandomKeyGenerator randomKeyGenerator;
-    private final ShortenUrlRepository shortenUrlDao;
+    private final ShortenUrlRepository shortenUrlRepository;
 
     private static final long ONE_HOUR = 60 * 60 * 1000;
 
@@ -30,14 +30,14 @@ public class UrlShortenService {
         this.urlMappingManager = urlMappingManager;
         this.appEnvironment = appEnvironment;
         this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix());
-        this.shortenUrlDao = shortenUrlDao;
+        this.shortenUrlRepository = shortenUrlDao;
     }
 
 
     public SearchShortenUrlResponse searchShortenUrl(SearchShortenUrlRequest request) {
         validatePrefix(request.key());
 
-        Optional<ShortenUrl> shortenUrlOpt = shortenUrlDao.findByShortKey(request.key());
+        Optional<ShortenUrl> shortenUrlOpt = shortenUrlRepository.findByShortKey(request.key());
         if (shortenUrlOpt.isEmpty()) {
             throw UrlShortenException.notFound(request.key());
         }
@@ -72,10 +72,8 @@ public class UrlShortenService {
         do {
             randomKey = generateRandomKey();
 
-            // DAO를 통해 키 중복 확인 및 저장
-            Optional<ShortenUrl> existingUrl = shortenUrlDao.findByShortKey(randomKey);
+            Optional<ShortenUrl> existingUrl = shortenUrlRepository.findByShortKey(randomKey);
             if (existingUrl.isEmpty()) {
-                // 새로운 단축 URL 저장
                 ShortenUrl shortenUrl = ShortenUrl.builder()
                         .shortKey(randomKey)
                         .originalUrl(originUrl)
@@ -83,7 +81,7 @@ public class UrlShortenService {
                         .expiryTime(Instant.now().plusSeconds(ttlMinutes * 60))
                         .build();
 
-                shortenUrlDao.save(shortenUrl);
+                shortenUrlRepository.save(shortenUrl);
                 success = true;
             } else {
                 success = false;
@@ -136,13 +134,13 @@ public class UrlShortenService {
         validatePrefix(code);
 
         // DAO를 통해 단축 URL 조회
-        Optional<ShortenUrl> shortenUrlOpt = shortenUrlDao.findByShortKey(code);
+        Optional<ShortenUrl> shortenUrlOpt = shortenUrlRepository.findByShortKey(code);
         if (shortenUrlOpt.isPresent()) {
             ShortenUrl shortenUrl = shortenUrlOpt.get();
 
             // 만료 시간 체크
             if (Instant.now().isAfter(shortenUrl.getExpiryTime())) {
-                shortenUrlDao.deleteByShortKey(code);
+                shortenUrlRepository.deleteByShortKey(code);
                 throw UrlShortenException.notFound(code);
             }
 

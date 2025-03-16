@@ -1,4 +1,4 @@
-package community.whatever.onembackendjava.dao;
+package community.whatever.onembackendjava.repository;
 
 import community.whatever.onembackendjava.entity.ShortenUrl;
 import lombok.RequiredArgsConstructor;
@@ -96,11 +96,5 @@ public class ShortenUrlRepositoryImpl implements ShortenUrlRepository {
     public int deleteByShortKey(String shortKey) {
         String sql = "DELETE FROM shorten_urls WHERE short_key = ?";
         return jdbcTemplate.update(sql, shortKey);
-    }
-
-    @Override
-    public List<ShortenUrl> findExpired() {
-        String sql = "SELECT * FROM shorten_urls WHERE expiry_time < NOW()";
-        return jdbcTemplate.query(sql, rowMapper);
     }
 }

@@ -2,7 +2,7 @@ package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AdminConstants;
-import community.whatever.onembackendjava.dao.ShortenUrlRepository;
+import community.whatever.onembackendjava.repository.ShortenUrlRepository;
 import community.whatever.onembackendjava.dto.BlockDomainRequest;
 import community.whatever.onembackendjava.dto.BlockedDomainsResponse;
 import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 public class AdminUrlShortenService {
 
     private final DomainBlockingManager domainBlockingManager;
-    private final ShortenUrlRepository shortenUrlDao;
+    private final ShortenUrlRepository shortenUrlRepository;
 
     public ShortenUrlsMapResponse getValidShortenUrls() {
-        Map<String, String> validUrls = shortenUrlDao.findAll().stream()
+        Map<String, String> validUrls = shortenUrlRepository.findAll().stream()
                 .filter(url -> Instant.now().isBefore(url.getExpiryTime()))
                 .collect(Collectors.toMap(
                         ShortenUrl::getShortKey,
@@ -39,7 +39,7 @@ public class AdminUrlShortenService {
     }
 
     public ShortenUrlsWithExpiryResponse getAllShortenUrlsWithExpiry() {
-        Map<String, ShortenUrlWithExpiryInfo> urlInfoMap = shortenUrlDao.findAll().stream()
+        Map<String, ShortenUrlWithExpiryInfo> urlInfoMap = shortenUrlRepository.findAll().stream()
                 .collect(Collectors.toMap(
                         ShortenUrl::getShortKey,
                         url -> new ShortenUrlWithExpiryInfo(url.getOriginalUrl(), url.getExpiryTime()),
@@ -55,7 +55,7 @@ public class AdminUrlShortenService {
     public String bulkAddShortenUrls(BulkAddShortenUrlsRequest request) {
         if (request.shortenUrls() != null) {
             request.shortenUrls().forEach((key, url) -> {
-                if (shortenUrlDao.findByShortKey(key).isEmpty()) {
+                if (shortenUrlRepository.findByShortKey(key).isEmpty()) {
                     ShortenUrl shortenUrl = ShortenUrl.builder()
                             .shortKey(key)
                             .originalUrl(url)
@@ -63,7 +63,7 @@ public class AdminUrlShortenService {
                             .expiryTime(Instant.now().plusSeconds(60 * 60 * 24 * 30)) // 30일 기본 유효기간
                             .build();
 
-                    shortenUrlDao.save(shortenUrl);
+                    shortenUrlRepository.save(shortenUrl);
                 }
             });
         }

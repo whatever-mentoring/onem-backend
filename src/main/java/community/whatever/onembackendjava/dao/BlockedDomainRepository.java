@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 차단된 도메인에 대한 데이터 접근 인터페이스
  */
-public interface BlockedDomainDao {
+public interface BlockedDomainRepository {
     
     /**
      * 새로운 차단 도메인 정보를 저장합니다.

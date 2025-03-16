@@ -2,7 +2,7 @@ package community.whatever.onembackendjava.service;
 
 import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AdminConstants;
-import community.whatever.onembackendjava.dao.ShortenUrlDao;
+import community.whatever.onembackendjava.dao.ShortenUrlRepository;
 import community.whatever.onembackendjava.dto.BlockDomainRequest;
 import community.whatever.onembackendjava.dto.BlockedDomainsResponse;
 import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class AdminUrlShortenService {
 
     private final DomainBlockingManager domainBlockingManager;
-    private final ShortenUrlDao shortenUrlDao;
+    private final ShortenUrlRepository shortenUrlDao;
 
     public ShortenUrlsMapResponse getValidShortenUrls() {
         Map<String, String> validUrls = shortenUrlDao.findAll().stream()

@@ -3,7 +3,7 @@ package community.whatever.onembackendjava.service;
 import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
-import community.whatever.onembackendjava.dao.ShortenUrlDao;
+import community.whatever.onembackendjava.dao.ShortenUrlRepository;
 import community.whatever.onembackendjava.dto.CreateShortenUrlRequest;
 import community.whatever.onembackendjava.dto.CreateShortenUrlResponse;
 import community.whatever.onembackendjava.dto.SearchShortenUrlRequest;
@@ -39,7 +39,7 @@ class UrlShortenServiceTest {
     private AppEnvironment appEnvironment;
     
     @Mock
-    private ShortenUrlDao shortenUrlDao;
+    private ShortenUrlRepository shortenUrlDao;
 
     private UrlShortenService urlShortenService;
     

@@ -3,7 +3,7 @@ package community.whatever.onembackendjava.service;
 import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
-import community.whatever.onembackendjava.dao.ShortenUrlDao;
+import community.whatever.onembackendjava.dao.ShortenUrlRepository;
 import community.whatever.onembackendjava.domain.RandomKeyGenerator;
 import community.whatever.onembackendjava.dto.*;
 import community.whatever.onembackendjava.entity.ShortenUrl;
@@ -22,11 +22,11 @@ public class UrlShortenService {
     private final DomainBlockingManager urlMappingManager;
     private final AppEnvironment appEnvironment;
     private final RandomKeyGenerator randomKeyGenerator;
-    private final ShortenUrlDao shortenUrlDao;
+    private final ShortenUrlRepository shortenUrlDao;
 
     private static final long ONE_HOUR = 60 * 60 * 1000;
 
-    public UrlShortenService(DomainBlockingManager urlMappingManager, AppEnvironment appEnvironment, ShortenUrlDao shortenUrlDao) {
+    public UrlShortenService(DomainBlockingManager urlMappingManager, AppEnvironment appEnvironment, ShortenUrlRepository shortenUrlDao) {
         this.urlMappingManager = urlMappingManager;
         this.appEnvironment = appEnvironment;
         this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix());

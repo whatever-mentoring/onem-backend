@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * 단축 URL에 대한 데이터 접근 인터페이스
  */
-public interface ShortenUrlDao {
+public interface ShortenUrlRepository {
     
     /**
      * 새로운 단축 URL 정보를 저장합니다.

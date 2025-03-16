@@ -1,6 +1,5 @@
 package community.whatever.onembackendjava.repository;
 
-import community.whatever.onembackendjava.dao.BlockedDomainDao;
 import community.whatever.onembackendjava.entity.BlockedDomain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -12,7 +11,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BlockedDomainRepository {
 
-    private final BlockedDomainDao blockedDomainDao;
+    private final community.whatever.onembackendjava.dao.BlockedDomainRepository blockedDomainDao;
     
     public boolean save(BlockedDomain blockedDomain) {
         return blockedDomainDao.save(blockedDomain);

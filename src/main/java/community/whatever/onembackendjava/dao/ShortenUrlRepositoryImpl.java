@@ -17,12 +17,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * 단축 URL DAO의 JDBC 구현체
- */
+
 @Repository
 @RequiredArgsConstructor
-public class JdbcShortenUrlDao implements ShortenUrlDao {
+public class ShortenUrlRepositoryImpl implements ShortenUrlRepository {
 
     private final JdbcTemplate jdbcTemplate;
 

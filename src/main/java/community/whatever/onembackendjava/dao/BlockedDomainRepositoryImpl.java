@@ -12,12 +12,10 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
 
-/**
- * 차단된 도메인 DAO의 JDBC 구현체
- */
+
 @Repository
 @RequiredArgsConstructor
-public class JdbcBlockedDomainDao implements BlockedDomainDao {
+public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
 
     private final JdbcTemplate jdbcTemplate;
     

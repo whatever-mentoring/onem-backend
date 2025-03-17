@@ -87,7 +87,7 @@ public class ShortenUrlRepositoryImpl implements ShortenUrlRepository {
     }
 
     @Override
-    public List<ShortenUrl> findAll() {
+    public List<ShortenUrl> findAllShortenUrls() {
         String sql = "SELECT * FROM shorten_urls";
         return jdbcTemplate.query(sql, rowMapper);
     }

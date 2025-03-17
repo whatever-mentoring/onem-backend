@@ -60,13 +60,6 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
     }
     
     @Override
-    public Set<String> findAll() {
-        return findAllDomains().stream()
-                .map(BlockedDomain::getDomain)
-                .collect(Collectors.toSet());
-    }
-    
-    @Override
     public List<BlockedDomain> findAllDomains() {
         String sql = "SELECT * FROM blocked_domains";
         return jdbcTemplate.query(sql, rowMapper);

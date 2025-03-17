@@ -27,13 +27,6 @@ public interface BlockedDomainRepository {
     boolean delete(String domain);
     
     /**
-     * 모든 차단된 도메인 정보를 조회합니다.
-     *
-     * @return 차단된 도메인 문자열 집합
-     */
-    Set<String> findAll();
-    
-    /**
      * 모든 차단된 도메인 엔티티를 조회합니다.
      *
      * @return 차단된 도메인 엔티티 목록

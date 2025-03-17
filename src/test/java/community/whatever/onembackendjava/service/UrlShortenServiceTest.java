@@ -138,15 +138,15 @@ class UrlShortenServiceTest {
             String originUrl = "https://blocked-example.com";
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, null);
             
-            // 정규화된 도메인 차단 확인
-            when(blockedDomainService.isDomainBlocked(eq("blocked-example.com"))).thenReturn(true);
+            // URL 차단 확인을 모킹
+            when(blockedDomainService.isUrlBlocked(eq(originUrl))).thenReturn(true);
 
             // when & then
             UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
                 urlShortenService.createShortenUrl(request);
             });
             
-            verify(blockedDomainService).isDomainBlocked(eq("blocked-example.com"));
+            verify(blockedDomainService).isUrlBlocked(eq(originUrl));
             assertTrue(exception.getMessage().contains("blocked-example.com"));
         }
         

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +48,9 @@ public class BlockedDomainService {
      * @return 차단된 도메인 목록
      */
     public Set<String> getAllBlockedDomains() {
-        return blockedDomainRepository.findAll();
+        return blockedDomainRepository.findAllDomains().stream()
+                .map(BlockedDomain::getDomain)
+                .collect(Collectors.toSet());
     }
     
     /**

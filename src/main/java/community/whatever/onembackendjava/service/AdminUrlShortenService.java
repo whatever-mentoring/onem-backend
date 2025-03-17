@@ -1,15 +1,14 @@
 package community.whatever.onembackendjava.service;
 
-import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AdminConstants;
-import community.whatever.onembackendjava.repository.ShortenUrlRepository;
 import community.whatever.onembackendjava.dto.BlockDomainRequest;
 import community.whatever.onembackendjava.dto.BlockedDomainsResponse;
-import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
 import community.whatever.onembackendjava.dto.BulkAddShortenUrlsRequest;
 import community.whatever.onembackendjava.dto.ShortenUrlWithExpiryInfo;
+import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
 import community.whatever.onembackendjava.dto.ShortenUrlsWithExpiryResponse;
 import community.whatever.onembackendjava.entity.ShortenUrl;
+import community.whatever.onembackendjava.repository.ShortenUrlRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,11 +21,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminUrlShortenService {
 
-    private final DomainBlockingManager domainBlockingManager;
+    private final BlockedDomainService blockedDomainService;
     private final ShortenUrlRepository shortenUrlRepository;
 
     public ShortenUrlsMapResponse getValidShortenUrls() {
-        Map<String, String> validUrls = shortenUrlRepository.findAll().stream()
+        Map<String, String> validUrls = shortenUrlRepository.findAllShortenUrls().stream()
                 .filter(url -> Instant.now().isBefore(url.getExpiryTime()))
                 .collect(Collectors.toMap(
                         ShortenUrl::getShortKey,
@@ -39,7 +38,7 @@ public class AdminUrlShortenService {
     }
 
     public ShortenUrlsWithExpiryResponse getAllShortenUrlsWithExpiry() {
-        Map<String, ShortenUrlWithExpiryInfo> urlInfoMap = shortenUrlRepository.findAll().stream()
+        Map<String, ShortenUrlWithExpiryInfo> urlInfoMap = shortenUrlRepository.findAllShortenUrls().stream()
                 .collect(Collectors.toMap(
                         ShortenUrl::getShortKey,
                         url -> new ShortenUrlWithExpiryInfo(url.getOriginalUrl(), url.getExpiryTime()),
@@ -71,16 +70,16 @@ public class AdminUrlShortenService {
     }
 
     public String blockDomain(BlockDomainRequest request) {
-        domainBlockingManager.blockDomain(request.domain());
+        blockedDomainService.blockDomain(request.domain());
         return AdminConstants.DOMAIN_BLOCK_SUCCESS;
     }
 
     public String unblockDomain(BlockDomainRequest request) {
-        boolean removed = domainBlockingManager.unblockDomain(request.domain());
+        boolean removed = blockedDomainService.unblockDomain(request.domain());
         return removed ? AdminConstants.DOMAIN_UNBLOCK_SUCCESS : AdminConstants.DOMAIN_NOT_FOUND;
     }
 
     public BlockedDomainsResponse getBlockedDomains() {
-        return new BlockedDomainsResponse(domainBlockingManager.getBlockedDomains());
+        return new BlockedDomainsResponse(blockedDomainService.getAllBlockedDomains());
     }
 }

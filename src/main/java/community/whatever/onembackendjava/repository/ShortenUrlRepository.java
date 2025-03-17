@@ -31,7 +31,7 @@ public interface ShortenUrlRepository {
      *
      * @return 모든 단축 URL 엔티티 목록
      */
-    List<ShortenUrl> findAll();
+    List<ShortenUrl> findAllShortenUrls();
     
     /**
      * shortKey로 단축 URL 정보를 삭제합니다.

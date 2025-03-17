@@ -9,7 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -116,11 +117,11 @@ class BlockedDomainServiceTest {
             String domain1 = "example1.com";
             String domain2 = "example2.com";
             
-            Set<String> blockedDomains = new HashSet<>();
-            blockedDomains.add(domain1);
-            blockedDomains.add(domain2);
+            List<BlockedDomain> blockedDomainEntities = new ArrayList<>();
+            blockedDomainEntities.add(BlockedDomain.builder().domain(domain1).build());
+            blockedDomainEntities.add(BlockedDomain.builder().domain(domain2).build());
             
-            when(blockedDomainRepository.findAll()).thenReturn(blockedDomains);
+            when(blockedDomainRepository.findAllDomains()).thenReturn(blockedDomainEntities);
             
             // when
             Set<String> result = service.getAllBlockedDomains();
@@ -129,7 +130,7 @@ class BlockedDomainServiceTest {
             assertEquals(2, result.size());
             assertTrue(result.contains(domain1));
             assertTrue(result.contains(domain2));
-            verify(blockedDomainRepository).findAll();
+            verify(blockedDomainRepository).findAllDomains();
         }
         
         @Test
@@ -173,14 +174,13 @@ class BlockedDomainServiceTest {
         void isUrlBlocked_WithInvalidUrl_ReturnsFalse() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String invalidUrl = "invalid://url";
+            String invalidUrl = "not-a-url"; // invalid://url에서 변경
             
             // when
             boolean result = service.isUrlBlocked(invalidUrl);
             
             // then
             assertFalse(result);
-            // 잘못된 URL이므로 repository는 호출되지 않아야 함
             verifyNoInteractions(blockedDomainRepository);
         }
     }

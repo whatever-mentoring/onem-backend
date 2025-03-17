@@ -1,6 +1,5 @@
 package community.whatever.onembackendjava.service;
 
-import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.repository.ShortenUrlRepository;
@@ -19,15 +18,15 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class UrlShortenService {
-    private final DomainBlockingManager urlMappingManager;
+    private final BlockedDomainService blockedDomainService;
     private final AppEnvironment appEnvironment;
     private final RandomKeyGenerator randomKeyGenerator;
     private final ShortenUrlRepository shortenUrlRepository;
 
     private static final long ONE_HOUR = 60 * 60 * 1000;
 
-    public UrlShortenService(DomainBlockingManager urlMappingManager, AppEnvironment appEnvironment, ShortenUrlRepository shortenUrlDao) {
-        this.urlMappingManager = urlMappingManager;
+    public UrlShortenService(BlockedDomainService blockedDomainService, AppEnvironment appEnvironment, ShortenUrlRepository shortenUrlDao) {
+        this.blockedDomainService = blockedDomainService;
         this.appEnvironment = appEnvironment;
         this.randomKeyGenerator = new RandomKeyGenerator(appEnvironment.getPrefix());
         this.shortenUrlRepository = shortenUrlDao;
@@ -58,10 +57,9 @@ public class UrlShortenService {
 
         validateUrl(originUrl);
 
-        URI uri = getUri(originUrl);
-
-        String host = uri.getHost();
-        if (host != null && urlMappingManager.isUrlBlocked(host)) {
+        if (blockedDomainService.isUrlBlocked(originUrl)) {
+            URI uri = getUri(originUrl);
+            String host = uri.getHost();
             throw UrlShortenException.blockedDomain(host);
         }
 

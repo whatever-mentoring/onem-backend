@@ -1,6 +1,5 @@
 package community.whatever.onembackendjava.service;
 
-import community.whatever.onembackendjava.DomainBlockingManager;
 import community.whatever.onembackendjava.constant.AppEnvironment;
 import community.whatever.onembackendjava.constant.UrlConstants;
 import community.whatever.onembackendjava.repository.ShortenUrlRepository;
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.*;
 class UrlShortenServiceTest {
 
     @Mock
-    private DomainBlockingManager urlMappingManager;
+    private BlockedDomainService blockedDomainService;
     
     @Mock
     private AppEnvironment appEnvironment;
@@ -48,7 +47,7 @@ class UrlShortenServiceTest {
     @BeforeEach
     void setUp() {
         when(appEnvironment.getPrefix()).thenReturn(TEST_PREFIX);
-        urlShortenService = new UrlShortenService(urlMappingManager, appEnvironment, shortenUrlDao);
+        urlShortenService = new UrlShortenService(blockedDomainService, appEnvironment, shortenUrlDao);
     }
 
     @Nested
@@ -139,15 +138,15 @@ class UrlShortenServiceTest {
             String originUrl = "https://blocked-example.com";
             CreateShortenUrlRequest request = new CreateShortenUrlRequest(originUrl, null);
             
-            // DomainBlockingManager는 urlMappingManager 변수명으로 저장되어 있음
-            when(urlMappingManager.isUrlBlocked(eq("blocked-example.com"))).thenReturn(true);
+            // 정규화된 도메인 차단 확인
+            when(blockedDomainService.isDomainBlocked(eq("blocked-example.com"))).thenReturn(true);
 
             // when & then
             UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
                 urlShortenService.createShortenUrl(request);
             });
             
-            verify(urlMappingManager).isUrlBlocked(eq("blocked-example.com"));
+            verify(blockedDomainService).isDomainBlocked(eq("blocked-example.com"));
             assertTrue(exception.getMessage().contains("blocked-example.com"));
         }
         
@@ -199,68 +198,14 @@ class UrlShortenServiceTest {
         }
         
         @Test
-        @DisplayName("존재하는 URL을 조회할 수 있다")
-        void searchShortenUrl_ExistingKey_Success() {
-            // given
-            String key = TEST_PREFIX + "-abc123";
-            String url = "https://example.com";
-            
-            // DB에 URL이 존재함을 시뮬레이션
-            ShortenUrl shortenUrl = ShortenUrl.builder()
-                    .shortKey(key)
-                    .originalUrl(url)
-                    .createdAt(Instant.now())
-                    .expiryTime(Instant.now().plusSeconds(3600))
-                    .build();
-            
-            when(shortenUrlDao.findByShortKey(key)).thenReturn(Optional.of(shortenUrl));
-            
-            SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
-
-            // when
-            SearchShortenUrlResponse response = urlShortenService.searchShortenUrl(request);
-
-            // then
-            assertNotNull(response);
-            assertEquals(url, response.originUrl());
-        }
-        
-        @Test
-        @DisplayName("만료된 URL을 조회하면 예외가 발생한다")
-        void searchShortenUrl_ExpiredUrl_ThrowsException() {
-            // given
-            String key = TEST_PREFIX + "-abc123";
-            String url = "https://example.com";
-            
-            // 만료된 URL 시뮬레이션
-            ShortenUrl shortenUrl = ShortenUrl.builder()
-                    .shortKey(key)
-                    .originalUrl(url)
-                    .createdAt(Instant.now().minusSeconds(7200))
-                    .expiryTime(Instant.now().minusSeconds(3600))
-                    .build();
-            
-            when(shortenUrlDao.findByShortKey(key)).thenReturn(Optional.of(shortenUrl));
-            
-            SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
-
-            // when & then
-            UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
-                urlShortenService.searchShortenUrl(request);
-            });
-            
-            assertTrue(exception.getMessage().contains("expired"));
-        }
-        
-        @Test
         @DisplayName("존재하지 않는 URL을 조회하면 예외가 발생한다")
-        void searchShortenUrl_NonExistingKey_ThrowsException() {
+        void searchShortenUrl_NotFound_ThrowsException() {
             // given
-            String key = TEST_PREFIX + "-nonexist";
+            String key = TEST_PREFIX + "ABC";
             SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
             
             // DB에 URL이 존재하지 않음을 시뮬레이션
-            when(shortenUrlDao.findByShortKey(key)).thenReturn(Optional.empty());
+            when(shortenUrlDao.findByShortKey(eq(key))).thenReturn(Optional.empty());
 
             // when & then
             UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
@@ -268,25 +213,80 @@ class UrlShortenServiceTest {
             });
             
             assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+            verify(shortenUrlDao).findByShortKey(eq(key));
+        }
+        
+        @Test
+        @DisplayName("만료된 URL을 조회하면 예외가 발생한다")
+        void searchShortenUrl_Expired_ThrowsException() {
+            // given
+            String key = TEST_PREFIX + "ABC";
+            SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
+            
+            // 만료된 URL 시뮬레이션
+            ShortenUrl expiredUrl = ShortenUrl.builder()
+                    .shortKey(key)
+                    .originalUrl("https://example.com")
+                    .createdAt(Instant.now().minusSeconds(7200))  // 2시간 전
+                    .expiryTime(Instant.now().minusSeconds(3600)) // 1시간 전 만료
+                    .build();
+            
+            when(shortenUrlDao.findByShortKey(eq(key))).thenReturn(Optional.of(expiredUrl));
+
+            // when & then
+            UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
+                urlShortenService.searchShortenUrl(request);
+            });
+            
+            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+            verify(shortenUrlDao).findByShortKey(eq(key));
+            assertTrue(exception.getMessage().contains("expired"));
+        }
+        
+        @Test
+        @DisplayName("유효한 URL을 조회하면 원본 URL을 반환한다")
+        void searchShortenUrl_Valid_ReturnsOriginalUrl() {
+            // given
+            String key = TEST_PREFIX + "ABC";
+            String originalUrl = "https://example.com";
+            SearchShortenUrlRequest request = new SearchShortenUrlRequest(key);
+            
+            // 유효한 URL 시뮬레이션
+            ShortenUrl validUrl = ShortenUrl.builder()
+                    .shortKey(key)
+                    .originalUrl(originalUrl)
+                    .createdAt(Instant.now().minusSeconds(3600))  // 1시간 전
+                    .expiryTime(Instant.now().plusSeconds(3600))  // 1시간 후 만료
+                    .build();
+            
+            when(shortenUrlDao.findByShortKey(eq(key))).thenReturn(Optional.of(validUrl));
+
+            // when
+            SearchShortenUrlResponse response = urlShortenService.searchShortenUrl(request);
+
+            // then
+            assertNotNull(response);
+            assertEquals(originalUrl, response.originUrl());
+            verify(shortenUrlDao).findByShortKey(eq(key));
         }
     }
-    
+
     @Nested
-    @DisplayName("원본 URL 조회 테스트")
+    @DisplayName("Original URL 조회 테스트")
     class GetOriginalUrlTest {
         
         @Test
         @DisplayName("잘못된 프리픽스로 URL을 조회하면 예외가 발생한다")
         void getOriginalUrl_InvalidPrefix_ThrowsException() {
             // given
-            String invalidCode = "invalid-code";
+            String invalidKey = "invalid-key";
             
             // 환경 정보 시뮬레이션
             when(appEnvironment.name()).thenReturn("DEV");
 
             // when & then
             UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
-                urlShortenService.getOriginalUrl(invalidCode);
+                urlShortenService.getOriginalUrl(invalidKey);
             });
             
             assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -294,71 +294,73 @@ class UrlShortenServiceTest {
         }
         
         @Test
-        @DisplayName("존재하는 코드로 원본 URL을 조회할 수 있다")
-        void getOriginalUrl_ExistingCode_Success() {
+        @DisplayName("존재하지 않는 URL을 조회하면 예외가 발생한다")
+        void getOriginalUrl_NotFound_ThrowsException() {
             // given
-            String code = TEST_PREFIX + "-abc123";
-            String url = "https://example.com";
-            
-            // DB에 URL이 존재함을 시뮬레이션
-            ShortenUrl shortenUrl = ShortenUrl.builder()
-                    .shortKey(code)
-                    .originalUrl(url)
-                    .createdAt(Instant.now())
-                    .expiryTime(Instant.now().plusSeconds(3600))
-                    .build();
-            
-            when(shortenUrlDao.findByShortKey(code)).thenReturn(Optional.of(shortenUrl));
-
-            // when
-            String originalUrl = urlShortenService.getOriginalUrl(code);
-
-            // then
-            assertEquals(url, originalUrl);
-        }
-        
-        @Test
-        @DisplayName("만료된 코드로 조회하면 예외가 발생하고 DB에서 삭제된다")
-        void getOriginalUrl_ExpiredCode_ThrowsExceptionAndDeletesFromDb() {
-            // given
-            String code = TEST_PREFIX + "-abc123";
-            String url = "https://example.com";
-            
-            // 만료된 URL 시뮬레이션
-            ShortenUrl shortenUrl = ShortenUrl.builder()
-                    .shortKey(code)
-                    .originalUrl(url)
-                    .createdAt(Instant.now().minusSeconds(7200))
-                    .expiryTime(Instant.now().minusSeconds(3600))
-                    .build();
-            
-            when(shortenUrlDao.findByShortKey(code)).thenReturn(Optional.of(shortenUrl));
-            when(shortenUrlDao.deleteByShortKey(code)).thenReturn(1);
-
-            // when & then
-            UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
-                urlShortenService.getOriginalUrl(code);
-            });
-            
-            assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
-            verify(shortenUrlDao).deleteByShortKey(code);
-        }
-        
-        @Test
-        @DisplayName("존재하지 않는 코드로 조회하면 예외가 발생한다")
-        void getOriginalUrl_NonExistingCode_ThrowsException() {
-            // given
-            String code = TEST_PREFIX + "-nonexist";
+            String key = TEST_PREFIX + "ABC";
             
             // DB에 URL이 존재하지 않음을 시뮬레이션
-            when(shortenUrlDao.findByShortKey(code)).thenReturn(Optional.empty());
+            when(shortenUrlDao.findByShortKey(eq(key))).thenReturn(Optional.empty());
 
             // when & then
             UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
-                urlShortenService.getOriginalUrl(code);
+                urlShortenService.getOriginalUrl(key);
             });
             
             assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+            verify(shortenUrlDao).findByShortKey(eq(key));
+        }
+        
+        @Test
+        @DisplayName("만료된 URL을 조회하면 예외가 발생하고 DB에서 삭제된다")
+        void getOriginalUrl_Expired_ThrowsExceptionAndDeletesFromDB() {
+            // given
+            String key = TEST_PREFIX + "ABC";
+            
+            // 만료된 URL 시뮬레이션
+            ShortenUrl expiredUrl = ShortenUrl.builder()
+                    .shortKey(key)
+                    .originalUrl("https://example.com")
+                    .createdAt(Instant.now().minusSeconds(7200))  // 2시간 전
+                    .expiryTime(Instant.now().minusSeconds(3600)) // 1시간 전 만료
+                    .build();
+            
+            when(shortenUrlDao.findByShortKey(eq(key))).thenReturn(Optional.of(expiredUrl));
+            when(shortenUrlDao.deleteByShortKey(eq(key))).thenReturn(1);
+
+            // when & then
+            UrlShortenException exception = assertThrows(UrlShortenException.class, () -> {
+                urlShortenService.getOriginalUrl(key);
+            });
+            
+            assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+            verify(shortenUrlDao).findByShortKey(eq(key));
+            verify(shortenUrlDao).deleteByShortKey(eq(key));
+        }
+        
+        @Test
+        @DisplayName("유효한 URL을 조회하면 원본 URL을 반환한다")
+        void getOriginalUrl_Valid_ReturnsOriginalUrl() {
+            // given
+            String key = TEST_PREFIX + "ABC";
+            String originalUrl = "https://example.com";
+            
+            // 유효한 URL 시뮬레이션
+            ShortenUrl validUrl = ShortenUrl.builder()
+                    .shortKey(key)
+                    .originalUrl(originalUrl)
+                    .createdAt(Instant.now().minusSeconds(3600))  // 1시간 전
+                    .expiryTime(Instant.now().plusSeconds(3600))  // 1시간 후 만료
+                    .build();
+            
+            when(shortenUrlDao.findByShortKey(eq(key))).thenReturn(Optional.of(validUrl));
+
+            // when
+            String result = urlShortenService.getOriginalUrl(key);
+
+            // then
+            assertEquals(originalUrl, result);
+            verify(shortenUrlDao).findByShortKey(eq(key));
         }
     }
 }

@@ -35,12 +35,6 @@ public class AdminUrlShortenController {
     public ResponseEntity<ShortenUrlsMapResponse> getValidShortenUrls() {
         return ResponseEntity.ok(adminUrlShortenService.getValidShortenUrls());
     }
-    
-    @Operation(summary = "만료된 URL 삭제", description = "만료된 모든 단축 URL을 삭제합니다.")
-    @PostMapping("/admin/shorten-urls/cleanup")
-    public ResponseEntity<String> cleanExpiredUrls() {
-        return ResponseEntity.ok(adminUrlShortenService.cleanExpiredUrls());
-    }
 
     @Operation(summary = "단축 URL 일괄 등록", description = "여러 단축 URL을 일괄 등록합니다.")
     @PostMapping("/admin/shorten-urls")

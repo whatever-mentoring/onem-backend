@@ -1,57 +1,85 @@
 package community.whatever.onembackendjava.service;
 
-import community.whatever.onembackendjava.UrlMappingManager;
 import community.whatever.onembackendjava.constant.AdminConstants;
 import community.whatever.onembackendjava.dto.BlockDomainRequest;
 import community.whatever.onembackendjava.dto.BlockedDomainsResponse;
-import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
 import community.whatever.onembackendjava.dto.BulkAddShortenUrlsRequest;
 import community.whatever.onembackendjava.dto.ShortenUrlWithExpiryInfo;
+import community.whatever.onembackendjava.dto.ShortenUrlsMapResponse;
 import community.whatever.onembackendjava.dto.ShortenUrlsWithExpiryResponse;
+import community.whatever.onembackendjava.entity.ShortenUrl;
+import community.whatever.onembackendjava.repository.ShortenUrlRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AdminUrlShortenService {
-    
-    private final UrlMappingManager urlMappingManager;
 
+    private final BlockedDomainService blockedDomainService;
+    private final ShortenUrlRepository shortenUrlRepository;
 
     public ShortenUrlsMapResponse getValidShortenUrls() {
-        return new ShortenUrlsMapResponse(urlMappingManager.findValidUrls());
+        Map<String, String> validUrls = shortenUrlRepository.findAllShortenUrls().stream()
+                .filter(url -> Instant.now().isBefore(url.getExpiryTime()))
+                .collect(Collectors.toMap(
+                        ShortenUrl::getShortKey,
+                        ShortenUrl::getOriginalUrl,
+                        (existing, replacement) -> existing,
+                        HashMap::new
+                ));
+
+        return new ShortenUrlsMapResponse(validUrls);
     }
 
     public ShortenUrlsWithExpiryResponse getAllShortenUrlsWithExpiry() {
-        Map<String, ShortenUrlWithExpiryInfo> urlInfoMap = urlMappingManager.findAllUrls();
+        Map<String, ShortenUrlWithExpiryInfo> urlInfoMap = shortenUrlRepository.findAllShortenUrls().stream()
+                .collect(Collectors.toMap(
+                        ShortenUrl::getShortKey,
+                        url -> new ShortenUrlWithExpiryInfo(url.getOriginalUrl(), url.getExpiryTime()),
+                        (existing, replacement) -> existing,
+                        HashMap::new
+                ));
+
+
         return new ShortenUrlsWithExpiryResponse(urlInfoMap);
     }
 
-    public String cleanExpiredUrls() {
-        urlMappingManager.cleanExpiredUrls();
-        return AdminConstants.CLEANUP_SUCCESS;
-    }
-    
+
     public String bulkAddShortenUrls(BulkAddShortenUrlsRequest request) {
         if (request.shortenUrls() != null) {
-            request.shortenUrls().forEach(urlMappingManager::putIfAbsent);
+            request.shortenUrls().forEach((key, url) -> {
+                if (shortenUrlRepository.findByShortKey(key).isEmpty()) {
+                    ShortenUrl shortenUrl = ShortenUrl.builder()
+                            .shortKey(key)
+                            .originalUrl(url)
+                            .createdAt(Instant.now())
+                            .expiryTime(Instant.now().plusSeconds(60 * 60 * 24 * 30)) // 30일 기본 유효기간
+                            .build();
+
+                    shortenUrlRepository.save(shortenUrl);
+                }
+            });
         }
         return AdminConstants.BULK_ADD_SUCCESS;
     }
-    
+
     public String blockDomain(BlockDomainRequest request) {
-        urlMappingManager.blockDomain(request.domain());
+        blockedDomainService.blockDomain(request.domain());
         return AdminConstants.DOMAIN_BLOCK_SUCCESS;
     }
-    
+
     public String unblockDomain(BlockDomainRequest request) {
-        boolean removed = urlMappingManager.unblockDomain(request.domain());
+        boolean removed = blockedDomainService.unblockDomain(request.domain());
         return removed ? AdminConstants.DOMAIN_UNBLOCK_SUCCESS : AdminConstants.DOMAIN_NOT_FOUND;
     }
-    
+
     public BlockedDomainsResponse getBlockedDomains() {
-        return new BlockedDomainsResponse(urlMappingManager.getBlockedDomains());
+        return new BlockedDomainsResponse(blockedDomainService.getAllBlockedDomains());
     }
 }

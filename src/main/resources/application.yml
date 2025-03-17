@@ -2,6 +2,13 @@ spring:
   application:
     name: onem-backend
 
+  # PostgreSQL 설정
+  datasource:
+    url: jdbc:postgresql://aqua-lioness-4916.6xw.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
   # Zipkin 트레이싱 설정
   zipkin:
     sender:
@@ -40,6 +47,7 @@ logging:
     community.whatever.onembackendjava.config.RequestLogger: INFO
     org.springframework.web: INFO
     org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+    org.springframework.jdbc.core: DEBUG
   file:
     name: logs/onem-backend.log
   logback:

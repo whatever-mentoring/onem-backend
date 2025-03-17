@@ -5,6 +5,9 @@ import java.util.Optional;
 import community.whatever.onembackendjava.entity.ShortenedUrlEntity;
 
 public interface ShortenedUrlRepository {
+
+	Optional<ShortenedUrlEntity> findById(Long id);
+
 	/**
 	 * <p> 단축된 Url로 조회</p>
 	 *
@@ -20,5 +23,9 @@ public interface ShortenedUrlRepository {
 	 * @return 저장된 단축 Url entity
 	 */
 	ShortenedUrlEntity save(ShortenedUrlEntity shortenedUrlEntity);
+
+	long count();
+
+	void clear();
 
 }

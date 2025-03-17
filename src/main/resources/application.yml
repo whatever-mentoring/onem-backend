@@ -31,19 +31,45 @@ management:
       show-details: always
 
 
----
+--- #dev
 spring.config.activate.on-profile: dev
+spring:
+  datasource:
+    url: jdbc:h2:mem:~/myApp
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  sql:
+    init:
+      mode: embedded
+      schema-locations: classpath:dev/schema.sql
+
+logging.level.org.springframework.jdbc: debug
 
 
-
-
----
+--- #stg
 spring.config.activate.on-profile: stg
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/onem_backend
+    username: jiheon
+    password: '0000'
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      schema-locations: classpath:stg/schema.sql
+      mode: always
 
 
-
----
+--- #prod
 spring.config.activate.on-profile: prd
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
 
 

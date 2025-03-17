@@ -20,12 +20,12 @@ public class BlockedDomainService {
      * 도메인을 차단 목록에 추가합니다.
      * 도메인은 정규화된 형태로 저장됩니다.
      *
-     * @param domain 차단할 도메인
+     * @param domainName 차단할 도메인
      */
-    public void blockDomain(String domain) {
-        String normalizedDomain = normalizeDomain(domain);
+    public void blockDomain(String domainName) {
+        String normalizedDomainName = normalizeDomain(domainName);
         BlockedDomain blockedDomain = BlockedDomain.builder()
-                .domain(normalizedDomain)
+                .domainName(normalizedDomainName)
                 .build();
         blockedDomainRepository.save(blockedDomain);
     }
@@ -34,12 +34,12 @@ public class BlockedDomainService {
      * 도메인을 차단 목록에서 제거합니다.
      * 도메인은 정규화된 형태로 검색됩니다.
      *
-     * @param domain 차단 해제할 도메인
+     * @param domainName 차단 해제할 도메인
      * @return 차단 해제 성공 여부
      */
-    public boolean unblockDomain(String domain) {
-        String normalizedDomain = normalizeDomain(domain);
-        return blockedDomainRepository.delete(normalizedDomain);
+    public boolean unblockDomain(String domainName) {
+        String normalizedDomainName = normalizeDomain(domainName);
+        return blockedDomainRepository.delete(normalizedDomainName);
     }
     
     /**
@@ -49,7 +49,7 @@ public class BlockedDomainService {
      */
     public Set<String> getAllBlockedDomains() {
         return blockedDomainRepository.findAllDomains().stream()
-                .map(BlockedDomain::getDomain)
+                .map(BlockedDomain::getDomainName)
                 .collect(Collectors.toSet());
     }
     
@@ -57,12 +57,12 @@ public class BlockedDomainService {
      * 주어진 도메인이 차단되었는지 확인합니다.
      * 도메인은 정규화된 형태로 검색됩니다.
      *
-     * @param domain 확인할 도메인
+     * @param domainName 확인할 도메인
      * @return 차단 여부
      */
-    public boolean isDomainBlocked(String domain) {
-        String normalizedDomain = normalizeDomain(domain);
-        return blockedDomainRepository.exists(normalizedDomain);
+    public boolean isDomainBlocked(String domainName) {
+        String normalizedDomainName = normalizeDomain(domainName);
+        return blockedDomainRepository.exists(normalizedDomainName);
     }
     
     /**
@@ -74,11 +74,11 @@ public class BlockedDomainService {
     public boolean isUrlBlocked(String url) {
         try {
             URI uri = new URI(url);
-            String host = uri.getHost();
-            if (host == null) {
+            String hostName = uri.getHost();
+            if (hostName == null) {
                 return false;
             }
-            return isDomainBlocked(host);
+            return isDomainBlocked(hostName);
         } catch (URISyntaxException e) {
             return false;
         }
@@ -89,15 +89,15 @@ public class BlockedDomainService {
      * - 소문자로 변환
      * - www. 접두사 제거
      *
-     * @param domain 정규화할 도메인 문자열
+     * @param domainName 정규화할 도메인 문자열
      * @return 정규화된 도메인 문자열
      */
-    private String normalizeDomain(String domain) {
-        if (domain == null) {
+    private String normalizeDomain(String domainName) {
+        if (domainName == null) {
             return "";
         }
         
-        String normalized = domain.toLowerCase();
+        String normalized = domainName.toLowerCase();
         if (normalized.startsWith("www.")) {
             normalized = normalized.substring(4);
         }

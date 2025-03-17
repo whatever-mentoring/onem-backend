@@ -11,8 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * BlockedDomainRepository 인터페이스의 JDBC 구현체
@@ -26,7 +24,7 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
     private final RowMapper<BlockedDomain> rowMapper = (rs, rowNum) -> 
         BlockedDomain.builder()
             .id(rs.getLong("id"))
-            .domain(rs.getString("domain"))
+            .domainName(rs.getString("domain"))
             .createdAt(rs.getTimestamp("created_at").toInstant())
             .build();
 
@@ -37,7 +35,7 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
         
         int rows = jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, blockedDomain.getDomain());
+            ps.setString(1, blockedDomain.getDomainName());
             return ps;
         }, keyHolder);
         
@@ -53,9 +51,9 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
     }
     
     @Override
-    public boolean delete(String domain) {
+    public boolean delete(String domainName) {
         String sql = "DELETE FROM blocked_domains WHERE domain = ?";
-        int rows = jdbcTemplate.update(sql, domain);
+        int rows = jdbcTemplate.update(sql, domainName);
         return rows > 0;
     }
     
@@ -66,9 +64,9 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
     }
     
     @Override
-    public boolean exists(String domain) {
+    public boolean exists(String domainName) {
         String sql = "SELECT COUNT(*) FROM blocked_domains WHERE domain = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, domain);
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, domainName);
         return count != null && count > 0;
     }
 }

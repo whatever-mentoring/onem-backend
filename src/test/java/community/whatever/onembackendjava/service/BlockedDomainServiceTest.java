@@ -31,20 +31,20 @@ class BlockedDomainServiceTest {
         void blockDomain_Success() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String domain = "blocked-example.com";
-            String normalizedDomain = domain; // 이미 정규화된 도메인
+            String domainName = "blocked-example.com";
+            String normalizedDomainName = domainName; // 이미 정규화된 도메인
             
-            when(blockedDomainRepository.exists(normalizedDomain)).thenReturn(true);
+            when(blockedDomainRepository.exists(normalizedDomainName)).thenReturn(true);
             when(blockedDomainRepository.save(any(BlockedDomain.class))).thenReturn(true);
             
             // when
-            service.blockDomain(domain);
-            boolean isBlocked = service.isDomainBlocked(domain);
+            service.blockDomain(domainName);
+            boolean isBlocked = service.isDomainBlocked(domainName);
             
             // then
             assertTrue(isBlocked);
             verify(blockedDomainRepository).save(any(BlockedDomain.class));
-            verify(blockedDomainRepository).exists(normalizedDomain);
+            verify(blockedDomainRepository).exists(normalizedDomainName);
         }
         
         @Test
@@ -52,23 +52,23 @@ class BlockedDomainServiceTest {
         void blockDomain_WithWwwPrefix_Success() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String domain = "blocked-example.com";
-            String domainWithWww = "www." + domain;
+            String domainName = "blocked-example.com";
+            String domainNameWithWww = "www." + domainName;
             
-            when(blockedDomainRepository.exists(domain)).thenReturn(true);
+            when(blockedDomainRepository.exists(domainName)).thenReturn(true);
             when(blockedDomainRepository.save(any(BlockedDomain.class))).thenReturn(true);
             
             // when
-            service.blockDomain(domainWithWww);
-            boolean isBlocked = service.isDomainBlocked(domainWithWww);
+            service.blockDomain(domainNameWithWww);
+            boolean isBlocked = service.isDomainBlocked(domainNameWithWww);
             
             // then
             assertTrue(isBlocked);
             
             // 정규화된 도메인으로 저장되었는지 검증
             verify(blockedDomainRepository).save(argThat(blockedDomain -> 
-                blockedDomain.getDomain().equals(domain)));
-            verify(blockedDomainRepository).exists(domain);
+                blockedDomain.getDomainName().equals(domainName)));
+            verify(blockedDomainRepository).exists(domainName);
         }
         
         @Test
@@ -76,20 +76,20 @@ class BlockedDomainServiceTest {
         void unblockDomain_Success() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String domain = "example.com";
+            String domainName = "example.com";
             
-            when(blockedDomainRepository.delete(domain)).thenReturn(true);
-            when(blockedDomainRepository.exists(domain)).thenReturn(false);
+            when(blockedDomainRepository.delete(domainName)).thenReturn(true);
+            when(blockedDomainRepository.exists(domainName)).thenReturn(false);
             
             // when
-            boolean result = service.unblockDomain(domain);
-            boolean isBlocked = service.isDomainBlocked(domain);
+            boolean result = service.unblockDomain(domainName);
+            boolean isBlocked = service.isDomainBlocked(domainName);
             
             // then
             assertTrue(result);
             assertFalse(isBlocked);
-            verify(blockedDomainRepository).delete(domain);
-            verify(blockedDomainRepository).exists(domain);
+            verify(blockedDomainRepository).delete(domainName);
+            verify(blockedDomainRepository).exists(domainName);
         }
         
         @Test
@@ -97,16 +97,16 @@ class BlockedDomainServiceTest {
         void unblockDomain_NonBlockedDomain_ReturnsFalse() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String domain = "non-blocked-example.com";
+            String domainName = "non-blocked-example.com";
             
-            when(blockedDomainRepository.delete(domain)).thenReturn(false);
+            when(blockedDomainRepository.delete(domainName)).thenReturn(false);
             
             // when
-            boolean result = service.unblockDomain(domain);
+            boolean result = service.unblockDomain(domainName);
             
             // then
             assertFalse(result);
-            verify(blockedDomainRepository).delete(domain);
+            verify(blockedDomainRepository).delete(domainName);
         }
         
         @Test
@@ -114,12 +114,12 @@ class BlockedDomainServiceTest {
         void getAllBlockedDomains_ReturnsAllBlockedDomains() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String domain1 = "example1.com";
-            String domain2 = "example2.com";
+            String domainName1 = "example1.com";
+            String domainName2 = "example2.com";
             
             List<BlockedDomain> blockedDomainEntities = new ArrayList<>();
-            blockedDomainEntities.add(BlockedDomain.builder().domain(domain1).build());
-            blockedDomainEntities.add(BlockedDomain.builder().domain(domain2).build());
+            blockedDomainEntities.add(BlockedDomain.builder().domainName(domainName1).build());
+            blockedDomainEntities.add(BlockedDomain.builder().domainName(domainName2).build());
             
             when(blockedDomainRepository.findAllDomains()).thenReturn(blockedDomainEntities);
             
@@ -128,8 +128,8 @@ class BlockedDomainServiceTest {
             
             // then
             assertEquals(2, result.size());
-            assertTrue(result.contains(domain1));
-            assertTrue(result.contains(domain2));
+            assertTrue(result.contains(domainName1));
+            assertTrue(result.contains(domainName2));
             verify(blockedDomainRepository).findAllDomains();
         }
         
@@ -138,17 +138,17 @@ class BlockedDomainServiceTest {
         void isUrlBlocked_WithBlockedDomain_ReturnsTrue() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String domain = "blocked-example.com";
-            String url = "https://www." + domain + "/some/path";
+            String domainName = "blocked-example.com";
+            String url = "https://www." + domainName + "/some/path";
             
-            when(blockedDomainRepository.exists(domain)).thenReturn(true);
+            when(blockedDomainRepository.exists(domainName)).thenReturn(true);
             
             // when
             boolean result = service.isUrlBlocked(url);
             
             // then
             assertTrue(result);
-            verify(blockedDomainRepository).exists(domain);
+            verify(blockedDomainRepository).exists(domainName);
         }
         
         @Test
@@ -156,17 +156,17 @@ class BlockedDomainServiceTest {
         void isUrlBlocked_WithNonBlockedDomain_ReturnsFalse() {
             // given
             BlockedDomainService service = new BlockedDomainService(blockedDomainRepository);
-            String domain = "non-blocked-example.com";
-            String url = "https://" + domain + "/some/path";
+            String domainName = "non-blocked-example.com";
+            String url = "https://" + domainName + "/some/path";
             
-            when(blockedDomainRepository.exists(domain)).thenReturn(false);
+            when(blockedDomainRepository.exists(domainName)).thenReturn(false);
             
             // when
             boolean result = service.isUrlBlocked(url);
             
             // then
             assertFalse(result);
-            verify(blockedDomainRepository).exists(domain);
+            verify(blockedDomainRepository).exists(domainName);
         }
         
         @Test

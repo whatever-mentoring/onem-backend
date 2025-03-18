@@ -25,6 +25,7 @@ public class ShortenUrlDto {
         @NoArgsConstructor
         public static class Request{
             private String originUrl;
+            private long expirationMin = 1;   // 기본값 1분
 
         }
 

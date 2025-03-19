@@ -27,7 +27,7 @@ public class ShortenedUrlJdbcRepository implements ShortenedUrlRepository {
 			WHERE id = :id
 			""";
 		return jdbcClient.sql(sql)
-			.param("id", 1)
+			.param("id", id)
 			.query(ShortenedUrlEntity.class)
 			.optional();
 	}
@@ -85,5 +85,6 @@ public class ShortenedUrlJdbcRepository implements ShortenedUrlRepository {
 		jdbcClient.sql("DELETE FROM SHORTENED_URL")
 			.update();
 	}
+	
 }
 

@@ -5,6 +5,7 @@ import community.whatever.onembackendjava.api.domain.ExpiringUrl;
 import community.whatever.onembackendjava.api.dto.ShortenUrlDto;
 import community.whatever.onembackendjava.common.error.BusinessExceptionGenerator;
 import community.whatever.onembackendjava.common.error.model.ErrorCode;
+import community.whatever.onembackendjava.common.util.GetEnvironmentPrefix;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,13 +47,14 @@ public class UrlShortenService {
         }
 
         Random random = new Random();
-        String returnKey = String.valueOf(random.nextInt(10000000));
+        String shortKey = String.valueOf(random.nextInt(10000000));
 
-        while (shortenUrls.containsKey(returnKey)) { // 이미 존재하는 키면 다시 생성
-            returnKey = String.valueOf(random.nextInt(10000000));
+        while (shortenUrls.containsKey(shortKey)) { // 이미 존재하는 키면 다시 생성
+            shortKey = String.valueOf(random.nextInt(10000000));
         }
 
         LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(param.getExpirationMin());
+        String returnKey = getEnvPrefixKey(shortKey);
         shortenUrls.put(returnKey, new ExpiringUrl(param.getOriginUrl(), expiryTime)); // 새로운 키를 저장
 
         return ShortenUrlDto.Create.Response.builder()
@@ -89,6 +91,11 @@ public class UrlShortenService {
             throw BusinessExceptionGenerator.createBusinessException(ErrorCode.DB002);
         }
         return expiringUrl.getOriginalUrl();
+    }
+
+    public String getEnvPrefixKey(String shortKey) {
+
+        return GetEnvironmentPrefix.getEnvPrefix() + shortKey;
     }
 
 }

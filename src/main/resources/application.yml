@@ -35,15 +35,10 @@ management:
 spring.config.activate.on-profile: dev
 spring:
   datasource:
-    url: jdbc:h2:mem:~/myApp
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  sql:
-    init:
-      mode: embedded
-      schema-locations: classpath:dev/schema.sql
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
 
 logging.level.org.springframework.jdbc: debug
 
@@ -52,14 +47,11 @@ logging.level.org.springframework.jdbc: debug
 spring.config.activate.on-profile: stg
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/onem_backend
-    username: jiheon
-    password: '0000'
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-  sql:
-    init:
-      schema-locations: classpath:stg/schema.sql
-      mode: always
+
 
 
 --- #prod

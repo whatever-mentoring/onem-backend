@@ -1,4 +1,52 @@
 services:
+  # PostgreSQL Master
+  postgres-master:
+    image: postgres:15
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: onem
+    volumes:
+      - postgres-master-data:/var/lib/postgresql/data
+    networks:
+      - onem-network
+    command: 
+      - "postgres"
+      - "-c" 
+      - "wal_level=logical"
+      - "-c" 
+      - "max_wal_senders=10"
+      - "-c" 
+      - "max_replication_slots=10"
+      - "-c" 
+      - "hot_standby=on"
+      - "-c"
+      - "listen_addresses=*"
+
+  # PostgreSQL Replica
+  postgres-replica:
+    image: bitnami/postgresql:15
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRESQL_MASTER_HOST: postgres-master
+      POSTGRESQL_MASTER_PORT_NUMBER: 5432
+      POSTGRESQL_REPLICATION_MODE: slave
+      POSTGRESQL_REPLICATION_USER: postgres
+      POSTGRESQL_REPLICATION_PASSWORD: postgres
+      POSTGRESQL_MASTER_PORT: 5432
+      POSTGRESQL_PASSWORD: postgres
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_DATABASE: onem
+    networks:
+      - onem-network
+    depends_on:
+      - postgres-master
+
   # Zipkin - 분산 트레이싱
   zipkin:
     image: openzipkin/zipkin
@@ -40,17 +88,19 @@ services:
     depends_on:
       - prometheus
 
-  # 애플리케이션 컨테이너 (옵션)
-  # onem-app:
-  #   build: .
-  #   ports:
-  #     - "8080:8080"
-  #   environment:
-  #     - SPRING_PROFILES_ACTIVE=docker
-  #   networks:
-  #     - onem-network
-  #   depends_on:
-  #     - zipkin
+  # 애플리케이션 컨테이너 
+  onem-app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - onem-network
+    depends_on:
+      - postgres-master
+      - postgres-replica
+      - zipkin
 
 networks:
   onem-network:
@@ -58,3 +108,4 @@ networks:
 
 volumes:
   grafana-storage:
+  postgres-master-data:

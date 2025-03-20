@@ -36,6 +36,8 @@ dependencies {
     
     // AspectJ - 필요한 의존성
     implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.aspectj:aspectjrt:1.9.21")
+    implementation("org.aspectj:aspectjweaver:1.9.21")
     
     // Observability - Logging
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")

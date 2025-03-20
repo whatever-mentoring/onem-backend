@@ -1,39 +1,31 @@
-package community.whatever.onembackendjava.repository;
+package community.whatever.onembackendjava.repository.command;
 
 import community.whatever.onembackendjava.entity.BlockedDomain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.List;
 
 /**
- * BlockedDomainRepository 인터페이스의 JDBC 구현체
+ * BlockedDomainCommandRepository 인터페이스의 JDBC 구현체
+ * 쓰기 작업만 담당하며 주 데이터베이스에 연결됩니다.
  */
 @Repository
 @RequiredArgsConstructor
-public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
+public class BlockedDomainCommandRepositoryImpl implements BlockedDomainCommandRepository {
 
-    private final JdbcTemplate jdbcTemplate;
-    
-    private final RowMapper<BlockedDomain> rowMapper = (rs, rowNum) -> 
-        BlockedDomain.builder()
-            .id(rs.getLong("id"))
-            .domain(rs.getString("domain"))
-            .createdAt(rs.getTimestamp("created_at").toInstant())
-            .build();
+    private final JdbcTemplate primaryJdbcTemplate;
 
     @Override
     public boolean save(BlockedDomain blockedDomain) {
         String sql = "INSERT INTO blocked_domains (domain) VALUES (?) ON CONFLICT (domain) DO NOTHING";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         
-        int rows = jdbcTemplate.update(connection -> {
+        int rows = primaryJdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, blockedDomain.getDomain());
             return ps;
@@ -51,22 +43,9 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
     }
     
     @Override
-    public boolean delete(String domainName) {
+    public boolean delete(String domain) {
         String sql = "DELETE FROM blocked_domains WHERE domain = ?";
-        int rows = jdbcTemplate.update(sql, domainName);
+        int rows = primaryJdbcTemplate.update(sql, domain);
         return rows > 0;
-    }
-    
-    @Override
-    public List<BlockedDomain> findAllDomains() {
-        String sql = "SELECT * FROM blocked_domains";
-        return jdbcTemplate.query(sql, rowMapper);
-    }
-    
-    @Override
-    public boolean exists(String domainName) {
-        String sql = "SELECT COUNT(*) FROM blocked_domains WHERE domain = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, domainName);
-        return count != null && count > 0;
     }
 }

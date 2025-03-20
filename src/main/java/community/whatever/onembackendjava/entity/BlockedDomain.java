@@ -16,6 +16,6 @@ import java.time.Instant;
 @AllArgsConstructor
 public class BlockedDomain {
     private Long id;
-    private String domainName;
+    private String domain;
     private Instant createdAt;
 }

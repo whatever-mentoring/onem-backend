@@ -23,7 +23,7 @@ public class BlockedDomainQueryRepositoryImpl implements BlockedDomainQueryRepos
     private final RowMapper<BlockedDomain> rowMapper = (rs, rowNum) -> 
         BlockedDomain.builder()
             .id(rs.getLong("id"))
-            .domain(rs.getString("domain"))
+            .domainName(rs.getString("domain"))
             .createdAt(rs.getTimestamp("created_at").toInstant())
             .build();
     

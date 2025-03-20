@@ -27,7 +27,7 @@ public class BlockedDomainCommandRepositoryImpl implements BlockedDomainCommandR
         
         int rows = primaryJdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, blockedDomain.getDomain());
+            ps.setString(1, blockedDomain.getDomainName());
             return ps;
         }, keyHolder);
         

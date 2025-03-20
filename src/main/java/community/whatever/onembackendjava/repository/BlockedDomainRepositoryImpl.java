@@ -24,7 +24,7 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
     private final RowMapper<BlockedDomain> rowMapper = (rs, rowNum) -> 
         BlockedDomain.builder()
             .id(rs.getLong("id"))
-            .domain(rs.getString("domain"))
+            .domainName(rs.getString("domain"))
             .createdAt(rs.getTimestamp("created_at").toInstant())
             .build();
 
@@ -35,7 +35,7 @@ public class BlockedDomainRepositoryImpl implements BlockedDomainRepository {
         
         int rows = jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, blockedDomain.getDomain());
+            ps.setString(1, blockedDomain.getDomainName());
             return ps;
         }, keyHolder);
         

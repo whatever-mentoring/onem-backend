@@ -54,7 +54,7 @@ class BlockedDomainServiceTest {
             
             // 정규화된 도메인으로 저장되었는지 검증
             verify(commandRepository).save(argThat(blockedDomain -> 
-                blockedDomain.getDomain().equals(domainName)));
+                blockedDomain.getDomainName().equals(domainName)));
             verify(queryRepository).exists(domainName);
         }
         
@@ -77,7 +77,7 @@ class BlockedDomainServiceTest {
             
             // 정규화된 도메인으로 저장되었는지 검증
             verify(commandRepository).save(argThat(blockedDomain -> 
-                blockedDomain.getDomain().equals(domainName)));
+                blockedDomain.getDomainName().equals(domainName)));
             verify(queryRepository).exists(domainName);
         }
         
@@ -130,8 +130,8 @@ class BlockedDomainServiceTest {
             String domainName2 = "example2.com";
             
             List<BlockedDomain> blockedDomainEntities = new ArrayList<>();
-            blockedDomainEntities.add(BlockedDomain.builder().domain(domainName1).build());
-            blockedDomainEntities.add(BlockedDomain.builder().domain(domainName2).build());
+            blockedDomainEntities.add(BlockedDomain.builder().domainName(domainName1).build());
+            blockedDomainEntities.add(BlockedDomain.builder().domainName(domainName2).build());
             
             when(queryRepository.findAllDomains()).thenReturn(blockedDomainEntities);
             

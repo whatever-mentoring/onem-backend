@@ -34,7 +34,7 @@ public class BlockedDomainService {
     public void blockDomain(String domainName) {
         String normalizedDomainName = normalizeDomain(domainName);
         BlockedDomain blockedDomain = BlockedDomain.builder()
-                .domain(normalizedDomainName)
+                .domainName(normalizedDomainName)
                 .build();
         commandRepository.save(blockedDomain);
     }
@@ -60,7 +60,7 @@ public class BlockedDomainService {
      */
     public Set<String> getAllBlockedDomains() {
         return queryRepository.findAllDomains().stream()
-                .map(BlockedDomain::getDomain)
+                .map(BlockedDomain::getDomainName)
                 .collect(Collectors.toSet());
     }
     

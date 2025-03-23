@@ -1,6 +1,7 @@
 package community.whatever.onembackendkotlin.domain
 
 import java.time.LocalDateTime
+import java.util.Optional
 
 interface ShortenedUrlRepository {
     /**
@@ -9,9 +10,9 @@ interface ShortenedUrlRepository {
      * @param id ShortenedUrl의 id이다.
      * @return 존재하면 ShortenedUrl을 반환하고 존재하지 않으면 null을 반환한다.
      */
-    fun findById(id: String): ShortenedUrl?
+    fun findById(id: String): Optional<ShortenedUrl>
 
-    fun findByIdAndDeletedIsFalse(id: String): ShortenedUrl?
+    fun findByIdAndDeletedIsFalse(id: String): Optional<ShortenedUrl>
 
     /**
      * ShortenedUrl을 저장한다.
@@ -35,7 +36,7 @@ interface ShortenedUrlRepository {
      * @param originUrl ShortenedUrl의 원본 URL이다.
      * @return 존재하면 ShortenedUrl을 반환하고 존재하지 않으면 null을 반환한다.
      */
-    fun findByOriginUrl(originUrl: String): ShortenedUrl?
+    fun findByOriginUrl(originUrl: String): Optional<ShortenedUrl>
 
     /**
      * 모든 ShortenedUrl을 삭제한다.

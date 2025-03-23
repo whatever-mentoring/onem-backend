@@ -6,8 +6,8 @@ import java.time.LocalDateTime
 
 @Table("SHORTENED_URL")
 data class ShortenedUrl(
+    @Id val id: String,
     val originUrl: String,
     val expiredAt: LocalDateTime,
-    @Id val id: String? = null,
     val deleted: Boolean = false,
 )

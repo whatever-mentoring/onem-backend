@@ -2,78 +2,64 @@ package community.whatever.onembackendkotlin.infra.repository
 
 import community.whatever.onembackendkotlin.domain.ShortenedUrl
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
 import java.sql.ResultSet
 import java.time.LocalDateTime
+import java.util.Optional
 
 @Repository
 class ShortenedUrlJdbcRepositoryImpl(
-    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
-    private val idGeneration: ShortenUrlIdGeneration,
+    private val jdbcClient: JdbcClient,
 ) : ShortenedUrlRepository {
 
-    override fun findById(id: String): ShortenedUrl? {
+    override fun findById(id: String): Optional<ShortenedUrl> {
         val sql = """
             SELECT * FROM shortened_url 
             WHERE id = :id
         """.trimIndent()
 
-        val params = mapOf("id" to id)
-
-        return namedParameterJdbcTemplate.query(sql, params) { rs, _ -> mapToShortenedUrl(rs) }.firstOrNull()
+        return jdbcClient.sql(sql)
+            .param("id", id)
+            .query { rs, _ -> mapToShortenedUrl(rs) }
+            .optional()
     }
 
-    override fun findByIdAndDeletedIsFalse(id: String): ShortenedUrl? {
+    override fun findByIdAndDeletedIsFalse(id: String): Optional<ShortenedUrl> {
         val sql = """
             SELECT * FROM shortened_url 
             WHERE id = :id AND deleted = FALSE
         """.trimIndent()
 
-        val params = mapOf("id" to id)
-
-        return namedParameterJdbcTemplate.query(sql, params) { rs, _ -> mapToShortenedUrl(rs) }.firstOrNull()
+        return jdbcClient.sql(sql)
+            .param("id", id)
+            .query { rs, _ -> mapToShortenedUrl(rs) }
+            .optional()
     }
 
     override fun save(shortenedUrl: ShortenedUrl): ShortenedUrl {
-        val id = if (shortenedUrl.id.isNullOrBlank()) {
-            idGeneration.generateId()
+        val exists = existsByOriginUrl(shortenedUrl.originUrl)
+        val sql = if (exists) {
+            """
+            UPDATE shortened_url 
+            SET deleted = FALSE, expired_at = :expiredAt
+            WHERE origin_url = :originUrl
+            """.trimIndent()
         } else {
-            shortenedUrl.id
+            """
+            INSERT INTO shortened_url (id, origin_url, expired_at, deleted)
+            VALUES (:id, :originUrl, :expiredAt, :deleted)
+            """.trimIndent()
         }
 
-        if (findById(id) != null) {
-            val updateSql = """
-                UPDATE shortened_url 
-                SET origin_url = :originUrl, expired_at = :expiredAt, deleted = :deleted 
-                WHERE id = :id
-            """.trimIndent()
+        jdbcClient.sql(sql)
+            .param("id", shortenedUrl.id)
+            .param("originUrl", shortenedUrl.originUrl)
+            .param("expiredAt", shortenedUrl.expiredAt)
+            .param("deleted", shortenedUrl.deleted)
+            .update()
 
-            val params = mapOf(
-                "id" to id,
-                "originUrl" to shortenedUrl.originUrl,
-                "expiredAt" to shortenedUrl.expiredAt,
-                "deleted" to shortenedUrl.deleted
-            )
-
-            namedParameterJdbcTemplate.update(updateSql, params)
-        } else {
-            val insertSql = """
-                INSERT INTO shortened_url (id, origin_url, expired_at, deleted) 
-                VALUES (:id, :originUrl, :expiredAt, :deleted)
-            """.trimIndent()
-
-            val params = mapOf(
-                "id" to id,
-                "originUrl" to shortenedUrl.originUrl,
-                "expiredAt" to shortenedUrl.expiredAt,
-                "deleted" to shortenedUrl.deleted
-            )
-
-            namedParameterJdbcTemplate.update(insertSql, params)
-        }
-
-        return shortenedUrl.copy(id = id)
+        return shortenedUrl
     }
 
     override fun existsByOriginUrl(originUrl: String): Boolean {
@@ -82,21 +68,22 @@ class ShortenedUrlJdbcRepositoryImpl(
             WHERE origin_url = :originUrl
             """.trimIndent()
 
-        val params = mapOf("originUrl" to originUrl)
-
-        val count = namedParameterJdbcTemplate.queryForObject(sql, params, Int::class.java) ?: 0
-        return count > 0
+        return jdbcClient.sql(sql)
+            .param("originUrl", originUrl)
+            .query(Int::class.java)
+            .single() > 0
     }
 
-    override fun findByOriginUrl(originUrl: String): ShortenedUrl? {
+    override fun findByOriginUrl(originUrl: String): Optional<ShortenedUrl> {
         val sql = """
             SELECT * FROM shortened_url 
-            WHERE origin_url = :originUrl AND deleted = FALSE
+            WHERE origin_url = :originUrl
             """.trimIndent()
 
-        val params = mapOf("originUrl" to originUrl)
-
-        return namedParameterJdbcTemplate.query(sql, params) { rs, _ -> mapToShortenedUrl(rs) }.firstOrNull()
+        return jdbcClient.sql(sql)
+            .param("originUrl", originUrl)
+            .query { rs, _ -> mapToShortenedUrl(rs) }
+            .optional()
     }
 
     override fun deleteAll() {
@@ -105,7 +92,9 @@ class ShortenedUrlJdbcRepositoryImpl(
             SET deleted = TRUE
             WHERE deleted = FALSE
             """.trimIndent()
-        namedParameterJdbcTemplate.update(sql, emptyMap<String, Any>())
+
+        jdbcClient.sql(sql)
+            .update()
     }
 
     override fun deleteAllByExpiredAtBefore(baseTime: LocalDateTime) {
@@ -115,9 +104,9 @@ class ShortenedUrlJdbcRepositoryImpl(
             WHERE expired_at < :baseTime
             """.trimIndent()
 
-        val params = mapOf("baseTime" to baseTime)
-
-        namedParameterJdbcTemplate.update(sql, params)
+        jdbcClient.sql(sql)
+            .param("baseTime", baseTime)
+            .update()
     }
 
     private fun mapToShortenedUrl(rs: ResultSet): ShortenedUrl {

@@ -18,29 +18,40 @@ import java.time.LocalDateTime
 class DefaultUrlShortenService(
     private val shortenedUrlRepository: ShortenedUrlRepository,
     private val blockedDomainService: BlockedDomainService,
+    private val idGeneration: ShortenUrlIdGeneration,
 ) : UrlShortenService {
 
     override fun getOriginUrl(request: ShortenUrlSearchRequest): OriginUrlResponse {
         val id = request.shortenUrl
         return OriginUrlResponse(
-            shortenedUrlRepository.findByIdAndDeletedIsFalse(id)?.originUrl ?: throw UrlNotFoundException()
+            shortenedUrlRepository.findByIdAndDeletedIsFalse(id).orElseThrow { UrlNotFoundException() }.originUrl
+                .also { originUrl ->
+                    blockedDomainService.isBlocked(BlockedDomainCheckRequest(originUrl))
+                        .takeIf { it }
+                        ?.let { throw DomainAlreadyBlockedException() }
+                }
         )
     }
 
     @Transactional
     override fun saveShortenUrl(request: ShortenUrlCreateRequest): ShortenedUrlResponse {
         val originUrl = request.originUrl
-        if (blockedDomainService.isBlocked(BlockedDomainCheckRequest(originUrl))) {
-            throw DomainAlreadyBlockedException()
-        }
+        blockedDomainService.isBlocked(BlockedDomainCheckRequest(originUrl))
+            .takeIf { it }
+            ?.let { throw DomainAlreadyBlockedException() }
 
-        shortenedUrlRepository.findByOriginUrl(originUrl)?.let { existingUrl ->
-            existingUrl.deleted.takeIf { it }
-                ?.run { shortenedUrlRepository.save(existingUrl.copy(deleted = false)) }
-                ?: existingUrl
-        } ?: shortenedUrlRepository.save(ShortenedUrl(originUrl, LocalDateTime.now()))
-
-        val newUrl = shortenedUrlRepository.save(ShortenedUrl(originUrl, LocalDateTime.now()))
-        return newUrl.id?.let { ShortenedUrlResponse(it) } ?: throw UrlNotFoundException()
+        return shortenedUrlRepository.findByOriginUrl(originUrl)
+            .map { it.copy(deleted = false, expiredAt = LocalDateTime.now()) }
+            .map { shortenedUrlRepository.save(it) }
+            .orElseGet {
+                shortenedUrlRepository.save(
+                    ShortenedUrl(
+                        id = idGeneration.generateId(),
+                        originUrl = originUrl,
+                        expiredAt = LocalDateTime.now()
+                    )
+                )
+            }
+            .let { ShortenedUrlResponse(it.id) }
     }
 }

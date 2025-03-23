@@ -29,7 +29,8 @@ class DefaultUrlShortenServiceTest {
     fun setUp() {
         shortenedUrlRepository = ShortenedUrlInMemoryRepository()
         blockedDomainService = DefaultBlockedDomainService(BlockedDomainInMemoryRepository())
-        urlShortenService = DefaultUrlShortenService(shortenedUrlRepository, blockedDomainService)
+        urlShortenService =
+            DefaultUrlShortenService(shortenedUrlRepository, blockedDomainService, ShortenUrlIdGeneration())
     }
 
     @DisplayName("ShortenedUrl 저장")
@@ -38,11 +39,13 @@ class DefaultUrlShortenServiceTest {
 
         private lateinit var originUrl: String
         private lateinit var shortenedUrl: ShortenedUrl
+        private lateinit var id: String
 
         @BeforeEach
         fun setUp() {
+            id = ShortenUrlIdGeneration().generateId()
             originUrl = faker.internet().url()
-            shortenedUrl = ShortenedUrl(originUrl, LocalDateTime.now())
+            shortenedUrl = ShortenedUrl(id, originUrl, LocalDateTime.now())
         }
 
         @Test
@@ -83,11 +86,13 @@ class DefaultUrlShortenServiceTest {
 
         private lateinit var originUrl: String
         private lateinit var shortenedUrl: ShortenedUrl
+        private lateinit var id: String
 
         @BeforeEach
         fun setUp() {
+            id = ShortenUrlIdGeneration().generateId()
             originUrl = faker.internet().url()
-            shortenedUrl = ShortenedUrl(originUrl, LocalDateTime.now())
+            shortenedUrl = ShortenedUrl(id, originUrl, LocalDateTime.now())
         }
 
         @Test

@@ -15,6 +15,7 @@ class ShortenUrlSchedulerTest {
 
     private lateinit var shortenUrlScheduler: ShortenUrlScheduler
     private lateinit var shortenedUrlRepository: ShortenedUrlRepository
+    private lateinit var idGeneration: ShortenUrlIdGeneration
     private val expireMinutes = 1L
     private val faker = Faker()
 
@@ -22,6 +23,7 @@ class ShortenUrlSchedulerTest {
     fun setUp() {
         shortenedUrlRepository = ShortenedUrlInMemoryRepository()
         shortenUrlScheduler = ShortenUrlScheduler(shortenedUrlRepository, expireMinutes)
+        idGeneration = ShortenUrlIdGeneration()
     }
 
     @Nested
@@ -31,11 +33,19 @@ class ShortenUrlSchedulerTest {
             // given
             val expiredOriginUrl = faker.internet().url()
             val expiredShortenedUrl =
-                ShortenedUrl(expiredOriginUrl, LocalDateTime.now().minusMinutes(expireMinutes + 1))
+                ShortenedUrl(
+                    idGeneration.generateId(),
+                    expiredOriginUrl,
+                    LocalDateTime.now().minusMinutes(expireMinutes + 1)
+                )
             shortenedUrlRepository.save(expiredShortenedUrl)
             val notExpiredOriginUrl = faker.internet().url()
             val notExpiredShortenedUrl =
-                ShortenedUrl(notExpiredOriginUrl, LocalDateTime.now().minusMinutes(expireMinutes - 1))
+                ShortenedUrl(
+                    idGeneration.generateId(),
+                    notExpiredOriginUrl,
+                    LocalDateTime.now().minusMinutes(expireMinutes - 1)
+                )
             shortenedUrlRepository.save(notExpiredShortenedUrl)
 
             // when

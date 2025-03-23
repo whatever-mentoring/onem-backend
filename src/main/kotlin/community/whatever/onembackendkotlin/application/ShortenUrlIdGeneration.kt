@@ -1,17 +1,16 @@
-package community.whatever.onembackendkotlin.infra.repository
+package community.whatever.onembackendkotlin.application
 
 import org.springframework.stereotype.Component
-import java.util.concurrent.atomic.AtomicLong
+import java.util.UUID
 
 @Component
 class ShortenUrlIdGeneration {
     companion object {
-        private val seq: AtomicLong = AtomicLong()
         private val keyPrefix: String = System.getenv("spring.profiles.active") ?: "local"
     }
 
     fun generateId(): String {
-        val id = seq.incrementAndGet()
-        return "$keyPrefix$id"
+        val id = UUID.randomUUID().toString()
+        return "$keyPrefix-$id"
     }
 }

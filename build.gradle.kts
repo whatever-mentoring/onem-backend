@@ -47,6 +47,9 @@ dependencies {
 
     testImplementation("net.datafaker:datafaker:2.4.2")
 
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:junit-jupiter")
+
 }
 
 tasks.withType<Test> {

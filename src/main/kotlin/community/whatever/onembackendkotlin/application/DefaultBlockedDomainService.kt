@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.net.URL
 import java.util.UUID
 
+@Transactional(readOnly = true)
 @Service
 class DefaultBlockedDomainService(private val blockedDomainRepository: BlockedDomainRepository) : BlockedDomainService {
 
@@ -23,7 +24,6 @@ class DefaultBlockedDomainService(private val blockedDomainRepository: BlockedDo
         return blockedDomainRepository.save(BlockedDomain(domain = domain, id = UUID.randomUUID()))
     }
 
-    @Transactional(readOnly = true)
     override fun isBlocked(request: BlockedDomainCheckRequest): Boolean {
         return URL(request.url).host.let { blockedDomainRepository.existsByDomain(it) }
     }
@@ -34,7 +34,6 @@ class DefaultBlockedDomainService(private val blockedDomainRepository: BlockedDo
         blockedDomainRepository.deleteByDomain(domain)
     }
 
-    @Transactional(readOnly = true)
     override fun getAll(): List<BlockedDomain> {
         return blockedDomainRepository.findAll()
     }

@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
+@Transactional(readOnly = true)
 @Service
 class DefaultUrlShortenService(
     private val shortenedUrlRepository: ShortenedUrlRepository,
     private val blockedDomainService: BlockedDomainService,
 ) : UrlShortenService {
 
-    @Transactional(readOnly = true)
     override fun getOriginUrl(request: ShortenUrlSearchRequest): OriginUrlResponse {
         val id = request.shortenUrl
         return OriginUrlResponse(

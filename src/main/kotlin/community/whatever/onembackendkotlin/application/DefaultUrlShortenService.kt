@@ -1,37 +1,49 @@
 package community.whatever.onembackendkotlin.application
 
-import community.whatever.onembackendkotlin.application.dto.BlockedDomainCheckRequest
-import community.whatever.onembackendkotlin.application.dto.OriginUrlResponse
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlCreateRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlSearchRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenedUrlResponse
 import community.whatever.onembackendkotlin.application.exception.DomainAlreadyBlockedException
 import community.whatever.onembackendkotlin.application.exception.UrlNotFoundException
 import community.whatever.onembackendkotlin.domain.ShortenedUrl
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
+@Transactional(readOnly = true)
 @Service
 class DefaultUrlShortenService(
     private val shortenedUrlRepository: ShortenedUrlRepository,
     private val blockedDomainService: BlockedDomainService,
+    private val idGeneration: ShortenUrlIdGeneration,
 ) : UrlShortenService {
 
-    override fun getOriginUrl(request: ShortenUrlSearchRequest): OriginUrlResponse {
-        val id = request.shortenUrl
-        return OriginUrlResponse(shortenedUrlRepository.findById(id)?.originUrl ?: throw UrlNotFoundException())
+    override fun getOriginUrl(shortenUrl: String): String {
+        return shortenedUrlRepository.findByIdAndDeletedIsFalse(shortenUrl)
+            .orElseThrow { UrlNotFoundException() }
+            .originUrl
+            .also { originUrl ->
+                blockedDomainService.isBlocked(originUrl)
+                    .takeIf { it }
+                    ?.let { throw DomainAlreadyBlockedException() }
+            }
     }
 
-    override fun saveShortenUrl(request: ShortenUrlCreateRequest): ShortenedUrlResponse {
-        val originUrl = request.originUrl
-        if (blockedDomainService.isBlocked(BlockedDomainCheckRequest(originUrl))) {
-            throw DomainAlreadyBlockedException()
-        }
-        shortenedUrlRepository.findByOriginUrl(originUrl)?.id
-            ?.let { return ShortenedUrlResponse(it) }
-        return shortenedUrlRepository.save(ShortenedUrl(originUrl, LocalDateTime.now())).id
-            ?.let { ShortenedUrlResponse(it) }
-            ?: throw UrlNotFoundException()
+    @Transactional
+    override fun saveShortenUrl(originUrl: String): ShortenedUrl {
+        blockedDomainService.isBlocked(originUrl)
+            .takeIf { it }
+            ?.let { throw DomainAlreadyBlockedException() }
+
+        return shortenedUrlRepository.findByOriginUrl(originUrl)
+            .map { it.takeIf { !it.deleted } ?: it.copy(deleted = false, expiredAt = LocalDateTime.now()) }
+            .map { shortenedUrlRepository.save(it) }
+            .orElseGet {
+                shortenedUrlRepository.save(
+                    ShortenedUrl(
+                        id = idGeneration.generateId(),
+                        originUrl = originUrl,
+                        expiredAt = LocalDateTime.now()
+                    )
+                )
+            }
     }
 }

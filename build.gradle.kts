@@ -35,7 +35,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-
     // Spring Boot Actuator는 애플리케이션의 상태를 모니터링하기 위한 라이브러리입니다.
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     // Micrometer는 애플리케이션의 성능 지표를 수집하고 모니터링하는 라이브러리입니다.
@@ -56,8 +55,9 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-sdk")
     // OpenTelemetry OTLP exporter를 사용하여 OTLP로 데이터를 전송하는 라이브러리입니다.
     implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
 
-
+    runtimeOnly("com.h2database:h2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
@@ -77,7 +77,6 @@ dependencies {
     testImplementation("org.springframework.restdocs:spring-restdocs-asciidoctor")
     // Dummy Data로 테스트를 하기 위해 Datafacker를 추가합니다.
     testImplementation("net.datafaker:datafaker:$datafakerVersion")
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -1,8 +1,8 @@
 package community.whatever.onembackendkotlin.application
 
+import community.whatever.onembackendkotlin.application.fack.ShortenedUrlInMemoryRepository
 import community.whatever.onembackendkotlin.domain.ShortenedUrl
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
-import community.whatever.onembackendkotlin.infra.repository.ShortenedUrlInMemoryRepository
 import net.datafaker.Faker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
@@ -15,13 +15,15 @@ class ShortenUrlSchedulerTest {
 
     private lateinit var shortenUrlScheduler: ShortenUrlScheduler
     private lateinit var shortenedUrlRepository: ShortenedUrlRepository
+    private lateinit var idGeneration: ShortenUrlIdGeneration
     private val expireMinutes = 1L
     private val faker = Faker()
 
     @BeforeEach
     fun setUp() {
-        shortenedUrlRepository = ShortenedUrlInMemoryRepository("test")
+        shortenedUrlRepository = ShortenedUrlInMemoryRepository()
         shortenUrlScheduler = ShortenUrlScheduler(shortenedUrlRepository, expireMinutes)
+        idGeneration = ShortenUrlIdGeneration()
     }
 
     @Nested
@@ -31,11 +33,19 @@ class ShortenUrlSchedulerTest {
             // given
             val expiredOriginUrl = faker.internet().url()
             val expiredShortenedUrl =
-                ShortenedUrl(expiredOriginUrl, LocalDateTime.now().minusMinutes(expireMinutes + 1))
+                ShortenedUrl(
+                    idGeneration.generateId(),
+                    expiredOriginUrl,
+                    LocalDateTime.now().minusMinutes(expireMinutes + 1)
+                )
             shortenedUrlRepository.save(expiredShortenedUrl)
             val notExpiredOriginUrl = faker.internet().url()
             val notExpiredShortenedUrl =
-                ShortenedUrl(notExpiredOriginUrl, LocalDateTime.now().minusMinutes(expireMinutes - 1))
+                ShortenedUrl(
+                    idGeneration.generateId(),
+                    notExpiredOriginUrl,
+                    LocalDateTime.now().minusMinutes(expireMinutes - 1)
+                )
             shortenedUrlRepository.save(notExpiredShortenedUrl)
 
             // when

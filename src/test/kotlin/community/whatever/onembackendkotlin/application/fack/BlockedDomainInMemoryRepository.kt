@@ -1,10 +1,8 @@
-package community.whatever.onembackendkotlin.infra.repository
+package community.whatever.onembackendkotlin.application.fack
 
 import community.whatever.onembackendkotlin.domain.BlockedDomain
 import community.whatever.onembackendkotlin.domain.BlockedDomainRepository
-import org.springframework.stereotype.Repository
 
-@Repository
 class BlockedDomainInMemoryRepository : BlockedDomainRepository {
     private val blockedDomains = mutableMapOf<String, BlockedDomain>()
 

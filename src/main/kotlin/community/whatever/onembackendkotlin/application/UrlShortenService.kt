@@ -1,12 +1,9 @@
 package community.whatever.onembackendkotlin.application
 
-import community.whatever.onembackendkotlin.application.dto.OriginUrlResponse
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlCreateRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlSearchRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenedUrlResponse
+import community.whatever.onembackendkotlin.domain.ShortenedUrl
 
 interface UrlShortenService {
 
-    fun getOriginUrl(request: ShortenUrlSearchRequest): OriginUrlResponse
-    fun saveShortenUrl(request: ShortenUrlCreateRequest): ShortenedUrlResponse
+    fun getOriginUrl(shortenUrl: String): String
+    fun saveShortenUrl(originUrl: String): ShortenedUrl
 }

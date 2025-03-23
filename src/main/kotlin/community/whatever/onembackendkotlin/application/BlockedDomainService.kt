@@ -1,17 +1,14 @@
 package community.whatever.onembackendkotlin.application
 
-import community.whatever.onembackendkotlin.application.dto.BlockedDomainCheckRequest
-import community.whatever.onembackendkotlin.application.dto.BlockedDomainCreateRequest
-import community.whatever.onembackendkotlin.application.dto.BlockedDomainDeleteRequest
 import community.whatever.onembackendkotlin.domain.BlockedDomain
 
 interface BlockedDomainService {
 
-    fun save(request: BlockedDomainCreateRequest): BlockedDomain
+    fun save(url: String): BlockedDomain
 
-    fun isBlocked(request: BlockedDomainCheckRequest): Boolean
+    fun isBlocked(url: String): Boolean
 
-    fun delete(request: BlockedDomainDeleteRequest)
+    fun delete(url: String)
 
     fun getAll(): List<BlockedDomain>
 }

@@ -2,11 +2,12 @@ package community.whatever.onembackendkotlin.presentation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import community.whatever.onembackendkotlin.application.UrlShortenService
-import community.whatever.onembackendkotlin.application.dto.OriginUrlResponse
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlCreateRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlSearchRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenedUrlResponse
 import community.whatever.onembackendkotlin.application.exception.UrlNotFoundException
+import community.whatever.onembackendkotlin.domain.ShortenedUrl
+import community.whatever.onembackendkotlin.presentation.dto.OriginUrlResponse
+import community.whatever.onembackendkotlin.presentation.dto.ShortenUrlCreateRequest
+import community.whatever.onembackendkotlin.presentation.dto.ShortenUrlSearchRequest
+import community.whatever.onembackendkotlin.presentation.dto.ShortenedUrlResponse
 import net.datafaker.Faker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -18,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.LocalDateTime
 
 @WebMvcTest(UrlShortenController::class)
 class UrlShortenControllerTest(
@@ -34,10 +36,9 @@ class UrlShortenControllerTest(
     fun `원본 URL 등록 시 키를 반환한다`() {
         // given
         val originUrl = faker.internet().url()
+        val shortenedUrl = ShortenedUrl(faker.idNumber().peselNumber(), originUrl, LocalDateTime.now())
         val request = ShortenUrlCreateRequest(originUrl)
-        val shortenedUrl = faker.idNumber().peselNumber()
-        val response = ShortenedUrlResponse(shortenedUrl)
-        given(urlShortenService.saveShortenUrl(request)).willReturn(response)
+        given(urlShortenService.saveShortenUrl(originUrl)).willReturn(shortenedUrl)
 
         // when
         val result = mockMvc.perform(
@@ -61,7 +62,7 @@ class UrlShortenControllerTest(
         val request = ShortenUrlSearchRequest(shortenedUrl)
         val originUrl = faker.internet().url()
         val response = OriginUrlResponse(originUrl)
-        given(urlShortenService.getOriginUrl(request)).willReturn(response)
+        given(urlShortenService.getOriginUrl(shortenedUrl)).willReturn(originUrl)
 
         // when
         val result = mockMvc.perform(
@@ -83,7 +84,7 @@ class UrlShortenControllerTest(
         // given
         val notExistShortenedUrl = faker.idNumber().peselNumber()
         val request = ShortenUrlSearchRequest(notExistShortenedUrl)
-        given(urlShortenService.getOriginUrl(request)).willThrow(UrlNotFoundException())
+        given(urlShortenService.getOriginUrl(notExistShortenedUrl)).willThrow(UrlNotFoundException())
 
         // when
         mockMvc.perform(
@@ -99,9 +100,8 @@ class UrlShortenControllerTest(
         // given
         val originUrl = "https://www.google.com"
         val request = ShortenUrlCreateRequest(originUrl)
-        val shortenedUrl = faker.idNumber().peselNumber()
-        val response = ShortenedUrlResponse(shortenedUrl)
-        given(urlShortenService.saveShortenUrl(request)).willReturn(response)
+        val shortenedUrl = ShortenedUrl(faker.idNumber().peselNumber(), originUrl, LocalDateTime.now())
+        given(urlShortenService.saveShortenUrl(originUrl)).willReturn(shortenedUrl)
 
         // when
         val result = mockMvc.perform(
@@ -115,6 +115,6 @@ class UrlShortenControllerTest(
             .contentAsString
 
         // then
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(response))
+        assertThat(result).isEqualTo(objectMapper.writeValueAsString(ShortenedUrlResponse(shortenedUrl.id)))
     }
 }

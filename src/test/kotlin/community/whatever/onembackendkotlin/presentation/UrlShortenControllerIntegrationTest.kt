@@ -1,9 +1,9 @@
 package community.whatever.onembackendkotlin.presentation
 
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlCreateRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlSearchRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenedUrlResponse
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
+import community.whatever.onembackendkotlin.presentation.dto.ShortenUrlCreateRequest
+import community.whatever.onembackendkotlin.presentation.dto.ShortenUrlSearchRequest
+import community.whatever.onembackendkotlin.presentation.dto.ShortenedUrlResponse
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
 import net.datafaker.Faker

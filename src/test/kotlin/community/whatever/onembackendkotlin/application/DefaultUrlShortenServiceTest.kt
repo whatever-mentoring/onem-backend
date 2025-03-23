@@ -1,8 +1,5 @@
 package community.whatever.onembackendkotlin.application
 
-import community.whatever.onembackendkotlin.application.dto.BlockedDomainCreateRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlCreateRequest
-import community.whatever.onembackendkotlin.application.dto.ShortenUrlSearchRequest
 import community.whatever.onembackendkotlin.application.exception.DomainAlreadyBlockedException
 import community.whatever.onembackendkotlin.application.exception.UrlNotFoundException
 import community.whatever.onembackendkotlin.application.fack.BlockedDomainInMemoryRepository
@@ -51,19 +48,19 @@ class DefaultUrlShortenServiceTest {
         @Test
         fun `저장된 url이 없으면 새로 저장하고 키를 반환한다`() {
             // when
-            val result = urlShortenService.saveShortenUrl(ShortenUrlCreateRequest(originUrl))
+            val result = urlShortenService.saveShortenUrl(originUrl)
 
             // then
-            assertThat(result.shortenedUrl).isNotNull
+            assertThat(result).isNotNull
         }
 
         @Test
         fun `이미 저장된 url이 있으면 찾아서 키를 반환한다`() {
             // given
-            val expect = urlShortenService.saveShortenUrl(ShortenUrlCreateRequest(originUrl))
+            val expect = urlShortenService.saveShortenUrl(originUrl)
 
             // when
-            val result = urlShortenService.saveShortenUrl(ShortenUrlCreateRequest(originUrl))
+            val result = urlShortenService.saveShortenUrl(originUrl)
 
             // then
             assertThat(result).isEqualTo(expect)
@@ -72,10 +69,10 @@ class DefaultUrlShortenServiceTest {
         @Test
         fun `차단된 도메인이면 예외를 발생시킨다`() {
             // given
-            blockedDomainService.save(BlockedDomainCreateRequest(originUrl))
+            blockedDomainService.save(originUrl)
 
             // when, then
-            assertThatThrownBy { urlShortenService.saveShortenUrl(ShortenUrlCreateRequest(originUrl)) }
+            assertThatThrownBy { urlShortenService.saveShortenUrl(originUrl) }
                 .isInstanceOf(DomainAlreadyBlockedException::class.java)
         }
     }
@@ -101,16 +98,16 @@ class DefaultUrlShortenServiceTest {
             val expect = shortenedUrlRepository.save(shortenedUrl)
 
             // when
-            val result = urlShortenService.getOriginUrl(ShortenUrlSearchRequest(requireNotNull(expect.id)))
+            val result = urlShortenService.getOriginUrl(requireNotNull(expect.id))
 
             // then
-            assertThat(result.originUrl).isEqualTo(originUrl)
+            assertThat(originUrl).isEqualTo(originUrl)
         }
 
         @Test
         fun `id에 해당하는 원본 URL이 없으면 예외를 발생시킨다`() {
             // when, then
-            assertThatThrownBy { urlShortenService.getOriginUrl(ShortenUrlSearchRequest(originUrl)) }
+            assertThatThrownBy { urlShortenService.getOriginUrl(originUrl) }
                 .isInstanceOf(UrlNotFoundException::class.java)
         }
     }

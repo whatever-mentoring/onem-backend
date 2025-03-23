@@ -3,7 +3,7 @@ POST {{baseUrl}}/shorten-url/create
 Content-Type: application/json
 
 {
-  "originUrl": "https://www.naver.com"
+  "originUrl": "https://www.naver1.com"
 }
 
 ### 짧은 키워드로 Origin URL 조회
@@ -11,5 +11,5 @@ POST {{baseUrl}}/shorten-url/search
 Content-Type: application/json
 
 {
-  "shortenUrl": "local-8714df25-5f52-449d-8e2b-4f9c283815a6"
+  "shortenUrl": "dev -9c5cd5ae-72d3-4f4d-a8a8-b34c2dd42443"
 }

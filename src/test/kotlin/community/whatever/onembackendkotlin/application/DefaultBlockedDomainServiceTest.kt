@@ -4,9 +4,9 @@ import community.whatever.onembackendkotlin.application.dto.BlockedDomainCheckRe
 import community.whatever.onembackendkotlin.application.dto.BlockedDomainCreateRequest
 import community.whatever.onembackendkotlin.application.dto.BlockedDomainDeleteRequest
 import community.whatever.onembackendkotlin.application.exception.DomainAlreadyBlockedException
+import community.whatever.onembackendkotlin.application.fack.BlockedDomainInMemoryRepository
 import community.whatever.onembackendkotlin.domain.BlockedDomain
 import community.whatever.onembackendkotlin.domain.BlockedDomainRepository
-import community.whatever.onembackendkotlin.infra.repository.BlockedDomainInMemoryRepository
 import net.datafaker.Faker
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

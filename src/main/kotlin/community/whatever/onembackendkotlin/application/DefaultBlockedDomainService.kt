@@ -7,12 +7,14 @@ import community.whatever.onembackendkotlin.application.exception.DomainAlreadyB
 import community.whatever.onembackendkotlin.domain.BlockedDomain
 import community.whatever.onembackendkotlin.domain.BlockedDomainRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.net.URL
 import java.util.UUID
 
 @Service
 class DefaultBlockedDomainService(private val blockedDomainRepository: BlockedDomainRepository) : BlockedDomainService {
 
+    @Transactional
     override fun save(request: BlockedDomainCreateRequest): BlockedDomain {
         val domain = URL(request.url).host
         if (blockedDomainRepository.existsByDomain(domain)) {
@@ -21,15 +23,18 @@ class DefaultBlockedDomainService(private val blockedDomainRepository: BlockedDo
         return blockedDomainRepository.save(BlockedDomain(domain = domain, id = UUID.randomUUID()))
     }
 
+    @Transactional(readOnly = true)
     override fun isBlocked(request: BlockedDomainCheckRequest): Boolean {
         return URL(request.url).host.let { blockedDomainRepository.existsByDomain(it) }
     }
 
+    @Transactional
     override fun delete(request: BlockedDomainDeleteRequest) {
         val domain = URL(request.url).host
         blockedDomainRepository.deleteByDomain(domain)
     }
 
+    @Transactional(readOnly = true)
     override fun getAll(): List<BlockedDomain> {
         return blockedDomainRepository.findAll()
     }

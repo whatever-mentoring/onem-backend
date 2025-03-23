@@ -11,6 +11,8 @@ interface ShortenedUrlRepository {
      */
     fun findById(id: String): ShortenedUrl?
 
+    fun findByIdAndDeletedIsFalse(id: String): ShortenedUrl?
+
     /**
      * ShortenedUrl을 저장한다.
      *

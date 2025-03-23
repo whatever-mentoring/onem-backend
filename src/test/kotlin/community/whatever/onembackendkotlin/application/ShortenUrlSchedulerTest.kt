@@ -1,8 +1,8 @@
 package community.whatever.onembackendkotlin.application
 
+import community.whatever.onembackendkotlin.application.fack.ShortenedUrlInMemoryRepository
 import community.whatever.onembackendkotlin.domain.ShortenedUrl
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
-import community.whatever.onembackendkotlin.infra.repository.ShortenedUrlInMemoryRepository
 import net.datafaker.Faker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
@@ -20,7 +20,7 @@ class ShortenUrlSchedulerTest {
 
     @BeforeEach
     fun setUp() {
-        shortenedUrlRepository = ShortenedUrlInMemoryRepository("test")
+        shortenedUrlRepository = ShortenedUrlInMemoryRepository()
         shortenUrlScheduler = ShortenUrlScheduler(shortenedUrlRepository, expireMinutes)
     }
 

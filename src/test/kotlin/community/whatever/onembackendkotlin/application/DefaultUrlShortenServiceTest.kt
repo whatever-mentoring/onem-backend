@@ -5,10 +5,10 @@ import community.whatever.onembackendkotlin.application.dto.ShortenUrlCreateRequ
 import community.whatever.onembackendkotlin.application.dto.ShortenUrlSearchRequest
 import community.whatever.onembackendkotlin.application.exception.DomainAlreadyBlockedException
 import community.whatever.onembackendkotlin.application.exception.UrlNotFoundException
+import community.whatever.onembackendkotlin.application.fack.BlockedDomainInMemoryRepository
+import community.whatever.onembackendkotlin.application.fack.ShortenedUrlInMemoryRepository
 import community.whatever.onembackendkotlin.domain.ShortenedUrl
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
-import community.whatever.onembackendkotlin.infra.repository.BlockedDomainInMemoryRepository
-import community.whatever.onembackendkotlin.infra.repository.ShortenedUrlInMemoryRepository
 import net.datafaker.Faker
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -27,7 +27,7 @@ class DefaultUrlShortenServiceTest {
 
     @BeforeEach
     fun setUp() {
-        shortenedUrlRepository = ShortenedUrlInMemoryRepository("test")
+        shortenedUrlRepository = ShortenedUrlInMemoryRepository()
         blockedDomainService = DefaultBlockedDomainService(BlockedDomainInMemoryRepository())
         urlShortenService = DefaultUrlShortenService(shortenedUrlRepository, blockedDomainService)
     }

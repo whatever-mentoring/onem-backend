@@ -10,6 +10,7 @@ import community.whatever.onembackendkotlin.application.exception.UrlNotFoundExc
 import community.whatever.onembackendkotlin.domain.ShortenedUrl
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
@@ -18,20 +19,30 @@ class DefaultUrlShortenService(
     private val blockedDomainService: BlockedDomainService,
 ) : UrlShortenService {
 
+    @Transactional(readOnly = true)
     override fun getOriginUrl(request: ShortenUrlSearchRequest): OriginUrlResponse {
         val id = request.shortenUrl
-        return OriginUrlResponse(shortenedUrlRepository.findById(id)?.originUrl ?: throw UrlNotFoundException())
+        return OriginUrlResponse(
+            shortenedUrlRepository.findByIdAndDeletedIsFalse(id)?.originUrl ?: throw UrlNotFoundException()
+        )
     }
 
+    @Transactional
     override fun saveShortenUrl(request: ShortenUrlCreateRequest): ShortenedUrlResponse {
         val originUrl = request.originUrl
         if (blockedDomainService.isBlocked(BlockedDomainCheckRequest(originUrl))) {
             throw DomainAlreadyBlockedException()
         }
-        shortenedUrlRepository.findByOriginUrl(originUrl)?.id
-            ?.let { return ShortenedUrlResponse(it) }
-        return shortenedUrlRepository.save(ShortenedUrl(originUrl, LocalDateTime.now())).id
-            ?.let { ShortenedUrlResponse(it) }
-            ?: throw UrlNotFoundException()
+
+        shortenedUrlRepository.findByOriginUrl(originUrl)?.let { existingUrl ->
+            if (existingUrl.deleted) {
+                val restoredUrl = shortenedUrlRepository.save(existingUrl.copy(deleted = false))
+                restoredUrl.id?.let { return ShortenedUrlResponse(it) } ?: throw UrlNotFoundException()
+            }
+            existingUrl.id?.let { return ShortenedUrlResponse(it) } ?: throw UrlNotFoundException()
+        }
+
+        val newUrl = shortenedUrlRepository.save(ShortenedUrl(originUrl, LocalDateTime.now()))
+        return newUrl.id?.let { ShortenedUrlResponse(it) } ?: throw UrlNotFoundException()
     }
 }

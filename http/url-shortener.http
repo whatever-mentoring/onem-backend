@@ -11,5 +11,5 @@ POST {{baseUrl}}/shorten-url/search
 Content-Type: application/json
 
 {
-  "shortenUrl": "1"
+  "shortenUrl": "local1"
 }

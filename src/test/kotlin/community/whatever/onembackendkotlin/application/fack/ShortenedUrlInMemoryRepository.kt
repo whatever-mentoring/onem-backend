@@ -1,25 +1,24 @@
-package community.whatever.onembackendkotlin.infra.repository
+package community.whatever.onembackendkotlin.application.fack
 
 import community.whatever.onembackendkotlin.domain.ShortenedUrl
 import community.whatever.onembackendkotlin.domain.ShortenedUrlRepository
-import org.springframework.stereotype.Repository
+import community.whatever.onembackendkotlin.infra.repository.ShortenUrlIdGeneration
 import java.time.LocalDateTime
-import java.util.concurrent.atomic.AtomicLong
 
-@Repository
 class ShortenedUrlInMemoryRepository : ShortenedUrlRepository {
 
-    private val keyPrefix: String = System.getenv("spring.profiles.active") ?: "local"
-
     private val shortenUrls = mutableMapOf<String, ShortenedUrl>()
-    private val seq: AtomicLong = AtomicLong()
 
     override fun findById(id: String): ShortenedUrl? {
         return shortenUrls[id]
     }
 
+    override fun findByIdAndDeletedIsFalse(id: String): ShortenedUrl? {
+        return shortenUrls[id]?.takeUnless { it.deleted }
+    }
+
     override fun save(shortenedUrl: ShortenedUrl): ShortenedUrl {
-        val id = generateId()
+        val id = ShortenUrlIdGeneration().generateId()
         return shortenedUrl.copy(id = id).also { shortenUrls[id] = it }
     }
 
@@ -39,9 +38,5 @@ class ShortenedUrlInMemoryRepository : ShortenedUrlRepository {
         shortenUrls.replaceAll { _, url ->
             url.takeUnless { it.expiredAt.isBefore(baseTime) } ?: url.copy(deleted = true)
         }
-    }
-
-    private fun generateId(): String {
-        return keyPrefix + seq.incrementAndGet()
     }
 }

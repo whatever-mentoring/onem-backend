@@ -3,6 +3,19 @@ spring:
     name: onem-backend-kotlin
   profiles:
     active: dev
+  datasource:
+    url: jdbc:h2:./data/onem-backend-kotlin
+    username: sa
+    password:
+  data:
+    jdbc:
+      dialect: h2
+  sql:
+    init:
+      mode: always
+  h2:
+    console:
+      enabled: true
 
 # 로그 설정 (Logs)
 logging:

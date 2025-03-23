@@ -35,12 +35,10 @@ class DefaultUrlShortenService(
         }
 
         shortenedUrlRepository.findByOriginUrl(originUrl)?.let { existingUrl ->
-            if (existingUrl.deleted) {
-                val restoredUrl = shortenedUrlRepository.save(existingUrl.copy(deleted = false))
-                restoredUrl.id?.let { return ShortenedUrlResponse(it) } ?: throw UrlNotFoundException()
-            }
-            existingUrl.id?.let { return ShortenedUrlResponse(it) } ?: throw UrlNotFoundException()
-        }
+            existingUrl.deleted.takeIf { it }
+                ?.run { shortenedUrlRepository.save(existingUrl.copy(deleted = false)) }
+                ?: existingUrl
+        } ?: shortenedUrlRepository.save(ShortenedUrl(originUrl, LocalDateTime.now()))
 
         val newUrl = shortenedUrlRepository.save(ShortenedUrl(originUrl, LocalDateTime.now()))
         return newUrl.id?.let { ShortenedUrlResponse(it) } ?: throw UrlNotFoundException()

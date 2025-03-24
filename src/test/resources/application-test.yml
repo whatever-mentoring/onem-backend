@@ -5,14 +5,14 @@ spring:
   # TestContainers로 관리되는 데이터소스 설정
   datasource:
     primary:
-      # TestContainers에서 자동으로 구성되므로 비워둠
-      # ServiceConnection 어노테이션을 통해 자동 연결됨
+      # TestContainers에서 자동으로 구성되므로 일부 속성만 설정
+      driver-class-name: org.postgresql.Driver
     replica:
       # 테스트에서는 replica를 사용하지 않음
       url: ${spring.datasource.primary.url}
       username: ${spring.datasource.primary.username}
       password: ${spring.datasource.primary.password}
-      driver-class-name: ${spring.datasource.primary.driver-class-name}
+      driver-class-name: org.postgresql.Driver
 
   # 테스트 환경에서는 트레이싱 비활성화
   zipkin:

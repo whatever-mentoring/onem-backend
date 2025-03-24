@@ -27,10 +27,7 @@ class BlockedDomainRepositoryTestWithContainers extends AbstractTestcontainersTe
 
     @BeforeEach
     void setUp() {
-        // 테스트 실행 전 테이블 초기화
-        jdbcTemplate.execute("DELETE FROM blocked_domains");
-        
-        // 테이블이 없는 경우 생성
+        // 먼저 테이블이 없는 경우 생성
         jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS blocked_domains (
                 id SERIAL PRIMARY KEY,
@@ -38,6 +35,9 @@ class BlockedDomainRepositoryTestWithContainers extends AbstractTestcontainersTe
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """);
+        
+        // 테이블 존재를 확인한 후 데이터 초기화
+        jdbcTemplate.execute("TRUNCATE TABLE blocked_domains RESTART IDENTITY");
     }
 
     @Test

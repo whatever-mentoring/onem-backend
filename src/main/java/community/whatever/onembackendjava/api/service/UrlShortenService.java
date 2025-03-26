@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 public class UrlShortenService {
 
     private final BlockedDomainInterface blockedDomainInterface;
+    private final GetEnvironmentPrefix getEnvironmentPrefix;
+
     private static final String UrlRegex = "https?://(?:www\\.)?[a-zA-Z0-9./]+";
     private static final Pattern URL_PATTERN = Pattern.compile(UrlRegex);
 
@@ -94,8 +96,7 @@ public class UrlShortenService {
     }
 
     public String getEnvPrefixKey(String shortKey) {
-
-        return GetEnvironmentPrefix.getEnvPrefix() + shortKey;
+        return getEnvironmentPrefix.getEnvPrefix() + shortKey;
     }
 
 }

@@ -1,10 +1,15 @@
 package community.whatever.onembackendjava;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
+
+
+@Slf4j
 @SpringBootApplication
-public class OnemBackendApplication {
+public class OnemBackendApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(OnemBackendApplication.class, args);

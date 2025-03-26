@@ -1,2 +1,29 @@
 app:
   environment: "development"
+
+management:
+  endpoint:
+    # 각각의 endpoint 마다 자세한 값을 보여줄 지 지정할 수 있다.
+    health:
+      show-details: always # default : never
+  endpoints:
+    web:
+      exposure:
+        # 웹으로 노출하고 싶은 endpoint를 지정할 수 있음
+        include: health, prometheus # default : health
+        # 웹으로 노출하고 싶지 않은 endpoint도 지정할 수 있음
+        exclude: info
+      # 메트릭을 확인할 base-url을 지정할 수 있다.
+      base-path: /actuator
+  zipkin:
+    tracing:
+      endpoint: "http://localhost:9411" # zipkin
+  tracing:
+    sampling:
+      probability: 1.0
+  propagation: # 추적 정보 전파 방식 (wbc, b3, b3_multi)
+    produce: b3_multi  # 추적 정보를 여러 개의 헤더로 나누어 전송
+    consume: b3        # HTTP 헤더를 사용하여 추적 ID, 스팬 ID 등을 전달
+  metrics:
+    tags:
+      application: ${spring:application:name}
